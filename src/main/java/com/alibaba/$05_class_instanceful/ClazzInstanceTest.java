@@ -1,4 +1,4 @@
-package com.alibaba.$5_class_instanceful;
+package com.alibaba.$05_class_instanceful;
 
 /**
  * 类的实例化顺序
