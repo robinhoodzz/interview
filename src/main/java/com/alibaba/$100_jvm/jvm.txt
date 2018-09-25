@@ -1,0 +1,108 @@
+1、堆/栈内存溢出
+栈
+java.lang.StackOverflowError
+无限递归会发生栈溢出
+
+通过不断执行方法，生成局部变量等操作，栈桢不断增加
+单线程下，xss设置太小，或者定义太多的本地变量（递归）都会导致stackoverflow。多线程下，通过不断创建新的线程就会导致oom
+
+【原因】：这也内存溢出错误的一种，即线程栈的溢出，要么是方法调用层次过多（比如存在无限递归调用），要么是线程栈太小。
+【解决】：优化程序设计，减少方法调用层次；调整-Xss参数增加线程栈大小。
+
+堆
+java.lang.OutOfMemoryError: Java heap space
+		Vector v = new  Vector( 10 );
+        for  ( int  i = 1 ;i < 10000000 ; i ++ ){
+            Object o = new  Object();
+            v.add(o);
+            o = null ;
+        }
+		会发生堆溢出(将内存改小-Xmx64M -Xms64M)
+
+当一个内存对象失去了所有的引用之后,GC 就可以将其回收
+
+Java中有几种不同的引用方式，它们分别是：强引用、软引用、弱引用和虚引用
+
+
+2、JVM内存结构  Eden 和 Survivor 比例
+程序计数器
+虚拟机栈
+本地方法栈
+方法区
+堆
+
+默认比例8:1
+
+堆可以划分为新生代和老年代
+
+新生代又可以划分为一个Eden区和两个Survivor（幸存）区
+新生代 ( Young ) 与老年代 ( Old ) 的比例的值为 1:2 ( 该值可以通过参数 –XX:NewRatio 来指定 )
+默认的，Eden : from : to = 8 : 1 : 1 ( 可以通过参数 –XX:SurvivorRatio 来设定 )，即： Eden = 8/10 的新生代空间大小，from = to = 1/10 的新生代空间大小。
+
+https://www.cnblogs.com/ASPNET2008/p/6496481.html
+看完这篇文章G1模型
+-XX:+UseG1GC -Xmx32g -XX:MaxGCPauseMillis=200
+
+tomcat中bin/catalina.sh
+JAVA_OPTS='-server -Xms4096m -Xmx8192m -XX:+UseBiasedLocking -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+UseFastAccessorMethods -XX:PermSize=128M -XX:MaxPermSize=256m -XX:SurvivorRatio=8'
+
+3、JVM内存为什么要分成新生代，老年代，持久代。新生代中为什么要分为Eden和Survivor。为什么设置两个Survivor
+
+分代的唯一理由就是优化GC性能。你先想想，如果没有分代，那我们所有的对象都在一块，GC的时候我们要找到哪些对象没用，这样就会对堆的所有区域进行扫描。而我们的很多对象都是朝生夕死的，如果分代的话，我们把新创建的对象放到某一地方，当GC的时候先把这块存“朝生夕死”对象的区域进行回收，这样就会腾出很大的空间出来。
+
+如果没有Survivor，Eden区每进行一次Minor GC，存活的对象就会被送到老年代。老年代很快被填满，触发Major GC（因为Major GC一般伴随着Minor GC，也可以看做触发了Full GC）。老年代的内存空间远大于新生代，进行一次Full GC消耗的时间比Minor GC长得多。
+Survivor的存在意义，就是减少被送到老年代的对象，进而减少Full GC的发生，Survivor的预筛选保证，只有经历16次Minor GC还能在新生代中存活的对象，才会被送到老年代。
+
+设置两个Survivor区最大的好处就是解决了碎片化。
+
+
+4、JVM 中一次完整的 GC 流程是怎样的，对象如何晋升到老年代，说说你知道的几种主要的 JVM 参数
+对象优先在新生代区中分配，若没有足够空间，Minor GC；
+大对象（需要大量连续内存空间）直接进入老年态；长期存活的对象进入老年态。如果对象在新生代出生并经过第一次MGC后仍然存活，年龄+1，若年龄超过一定限制（15），则被晋升到老年态。
+
+5、jvm 常用监控命令
+
+(1)jps  虚拟机进程状况工具
+-q
+-m
+-l
+-v
+(2)jstat  虚拟机统计信息监控工具
+-class 监视类加载、卸载数量、总空间以及类加载所耗费时间
+-gc    关注用量
+-gcutil  关注百分比
+
+
+例jstat -gc 2764 250 20
+进程号2764
+每250毫秒查询一次2764垃圾收集情况 共查询20次
+
+(3)jinfo
+-flags pid   所有参数信息
+-flag name pid  单个指定参数信息
+
+-flag name=value pid 修改参数值
+
+(4)jmap java内存映像工具
+-dump:[live,]format=b,file=<filename> pid  生成java堆转储快照
+-heap  显示堆详细信息,使用哪种回收器,参数配置,分代情况
+-histo  显示堆中对象统信息,包括类、实例数量、合计数量
+-permstat 以ClassLoader为统计口径显示永久代内存状态
+
+(5)jhat  虚拟机堆转储快照分析工具
+
+(6)jstack java堆栈跟踪工具
+-F   当正常的输出请求不被请求的话,强制输出堆栈
+-l   除堆栈外,输出关于锁的附加信息
+-m   如果调用到本地方法的话,可以显示C/C++的堆栈
+
+6、你知道哪几种垃圾收集器,各自优缺点,重点讲下CMS和G1,原理、流程、优缺点
+
+CMS:
+优点:并发收集、低停顿
+缺点:
+	对CPU资源非常敏感
+	无法处理浮动垃圾(Floating Garbage),可能出现"Concurrent Mode Failure"失败而导致另一次Full GC产生
+初始标记|并发标记|重新标记|并发清除
+
+	
