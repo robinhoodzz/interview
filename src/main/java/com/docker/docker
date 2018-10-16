@@ -1,0 +1,93 @@
+安装运行
+1：
+yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-selinux \
+                  docker-engine-selinux \
+                  docker-engine
+2：
+yum install -y yum-utils \
+  device-mapper-persistent-data \
+  lvm2
+3：
+yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+4：
+yum-config-manager --enable docker-ce-edge
+yum-config-manager --enable docker-ce-test
+5：
+yum list docker-ce --showduplicates | sort -r
+选择18.06.1.ce-3.el7
+yum install docker-ce-18.06.1.ce-3.el7
+6：
+systemctl start docker
+docker run hello-world
+
+命令
+docker search -s 50 centos
+docker pull centos
+docker images -a
+docker ps -a
+docker ps -n 2 前两个容器
+docker rmi -f imageID
+docker rm -f continerID
+docker run -it centos   交互式
+docker run -d centos  后台运行（如果没有运行的则自动杀死容器）
+（docker run -d centos /bin/sh -c "while true; do echo hello th;sleep 2;done"）
+docker stop continerID  等待
+docker kill continerID  强制杀死
+退出容器(直接退出) exit
+退出容器(后台运行) ctrl + p+ q
+docker attach continerId  重新进入容器
+docker start continerId  启动之前关闭容器
+docker exec -t continerID ls -l /tmp   直接在容器外面运行容器内指令
+docker exec -t continerID /bin/bash  和attach一样进到容器内
+docker logs continerId  查看某个容器的日志
+从容器内copy到主机上
+docker cp continerID:/tmp/yum.log /root
+
+指定端口 -p   随机端口-P
+docker run -it -p 8888:8080 tomcat
+docker run -it -P tomcat
+
+提交镜像
+正在运行的镜像:
+docker ps -l
+docker commit -a="tianhuan" -m="my tomcat" continerId tian/tomcat:1.0.1
+
+创建容器卷:
+数据共享(双向)
+docker run -it -v /宿主机目录:/容器目录 centos
+只读(只能宿主机给docker容器共享)
+docker run -it -v /宿主机目录:/容器目录:ro centos
+多个的话
+[容器目录1,容器目录2]
+如果报错权限不够 ,在容器目录后添加参数 --privileged=true
+volumes-from
+
+dockerfile:
+执行dockerfile
+docker build -f /mydocker/Dockerfile -t tian/centos
+build后生成新镜像
+生成之后run 镜像
+
+保留字指令
+FROM 基础镜像,当前新镜像是基于哪个镜像的
+MAINTAINER  镜像维护者的姓名和邮箱
+RUN 容器构建时需要运行的命令
+EXPOSE 当前容器对外暴露的端口
+WORKDIR 指定在创建容器后，终端默认登录的进来工作目录，一个落脚点
+ENV 用来在构建镜像过程中设置环境变量
+ADD 拷贝加解压缩 将宿主机目录下的文件拷贝进镜像且ADD命令会自动处理URL和解压tar压缩包
+COPY 拷贝  从宿主机拷贝到镜像  COPY src dest  或者COPY["src","dest"]
+VOLUME 容器数据卷,用于数据保存和持久化工作  VOLUME ["dataVolume1","datavolume2"]
+CMD 指定一个容易启动时要运行的命令  DockerFile中可以有多个CMD ,但只有最后一个生效,CMD会被docker run之后的参数替换
+ENTRYPOINT 指定一个容器启动时要运行的命令 和CMD 不同的是docker run之后的参数会被追加
+ONBUILD 当构建一个被继承的dockerfile时运行命令，父镜像在被子继承后父镜像的onbuild被触发 类似钩子
+
