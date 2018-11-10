@@ -21,16 +21,23 @@ public class Father {
         System.out.println("(3)");
     }
 
-    private char test() {
+    public int test() {
         System.out.println("(4)");
         return 1;
     }
 
 
-    private static int method() {
+    public static int method() {
         System.out.println("(5)");
-        return 0;
+        return 1;
     }
 
+
+    public static void main(String[] args) {
+        Son s1 = new Son();
+        System.out.println();
+        Son s2 = new Son();
+
+    }
 
 }
