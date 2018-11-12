@@ -1,0 +1,25 @@
+### java8 底层变化
+
+1. 内存模型变化
+
+2. HashMap 和 ConcurrentHashMap
+
+3.
+
+
+
+### 与java7(jdk1.7) 比较
+
+1. 接口默认方法 interface中 可以有default的具体实现方法(非抽象,有逻辑代码)
+2. lambda表达式
+3. 函数式接口 @FunctionalInterface
+4. 方法和构造函数引用 System.out::println
+5. Optional类, 用于减少空指针异常, 和定位空指针的代码行
+6. stream管道, 串行流, 并行流
+7. 日期类(LocalDate), 解决format过程中出现空指针异常的情况(除非用ThreadLocal)
+8. 重复注解, 属性,方法,类上面, 可以存在2个相同的注解 @Hint("123") @Hint("456") private String name;
+
+
+
+
+
