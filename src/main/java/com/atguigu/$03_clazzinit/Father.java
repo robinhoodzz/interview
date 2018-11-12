@@ -20,7 +20,6 @@ public class Father {
         return 1;
     }
 
-
     public static int method() {
         System.out.println("(5)");
         return 1;
