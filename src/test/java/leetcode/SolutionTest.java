@@ -33,8 +33,29 @@ public class SolutionTest {
         Solution solution = new Solution();
 //        int[] arr = new int[]{0, 0, 0, 1};
 //        int[] arr = new int[]{0, 0, 2, 1};
-        int[] arr = new int[]{9,9};
+        int[] arr = new int[]{9, 9};
         System.out.println(Arrays.toString(solution.plusOne(arr)));
+    }
+
+
+    @Test
+    public void name4() throws Exception {
+        Solution solution = new Solution();
+//        int[] arr = new int[]{0, 0, 0, 1};
+//        int[] arr = new int[]{0, 0, 2, 1};
+        int[][] arr = new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+        System.out.println(Arrays.toString(solution.findDiagonalOrder(arr)));
+    }
+
+
+
+
+    @Test
+    public void name5() throws Exception {
+        Solution solution = new Solution();
+        String a = "11";
+        String b = "1" ;
+        System.out.println(solution.addBinary(a,b));
     }
 
 

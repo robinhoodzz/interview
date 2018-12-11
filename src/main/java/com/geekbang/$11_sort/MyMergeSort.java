@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Created by robin on 18/11/22.
  */
-public class MySortSort {
+public class MyMergeSort {
 
     public static void main(String[] args) {
 
