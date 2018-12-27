@@ -1,13 +1,12 @@
-package com.dt.demo11_binarysorttree;
+package com.dt.demo12_binarysorttree;
 
 /**
- * 二叉排序树
+ * 二叉平衡树
  *
  * 性质:
- * 若左子树不空, 左子树上所有节点的值 < 它根节点的值
- * 若右子树不空, 右子树上所有节点的值 > 它根节点的值
- * 左右子树也分别为二叉排序树
- * 没有键值相等的节点
+ * 它的左右两个子树的高度差的绝对值不超过 1
+ *
+ *
  *
  * Created by Administrator on 2018/12/24.
  */
