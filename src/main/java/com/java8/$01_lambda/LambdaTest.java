@@ -28,7 +28,7 @@ public class LambdaTest {
      */
     public static void test1() {
         list.sort((x, y) -> {
-            if(x.getAge() == y.getAge()) {
+            if (x.getAge() == y.getAge()) {
                 return -Double.compare(x.getSalary(), y.getSalary());
             } else {
                 return Integer.compare(x.getAge(), y.getAge());

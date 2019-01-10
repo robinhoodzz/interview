@@ -37,17 +37,19 @@ public class Node {
 
         // 判断是否是平衡二叉树
         // 进行右旋转
-        if (left.height() - right.height() >= 2) {
+        if (leftHeight() - rightHeight() >= 2) {
             rightRotate();
-            // 左旋转
-        } else {
+        }
+        // 左旋转
+        if (rightHeight() - leftHeight() >= 2) {
             leftRotate();
         }
+
     }
 
     /**
      * 左边旋转
-     *
+     * <p>
      * 步骤:
      * 1. 构建一个新的 当前节点 newCurr
      * 2. 构建一个新的 当前节点的左节点 newCurrLeft, 并作为 newCurr的左节点
@@ -55,22 +57,20 @@ public class Node {
      * 4. 当前节点的值 等于 当前节点右节点的值 curr.value = curr.right.value
      * 5. 当前节点的右节点 等于 当前节点的右节点的右节点
      * 6. 新节点 等于 当前节点的左节点
-     *
      */
     private void leftRotate() {
 
         Node newCurr = new Node(this.value);
 
-        Node newCurrLeft = this.left;
+        newCurr.left = this.left;
 
-        Node newCurrRightLeft = this.right.left;
+        newCurr.right = this.right.left;
 
         this.value = this.right.value;
 
         this.right = this.right.right;
 
         this.left = newCurr;
-
 
     }
 
@@ -84,7 +84,7 @@ public class Node {
      * _________newCurr___________
      * |                           |
      * newCurrLeftRight             newCurrRight
-     *
+     * <p>
      * 4. 让当前节点的值 变为 当前左节点的值  curr.value = curr.left.value
      * 5. 让当前节点的左节点为当前节点的左节点的左节点 curr.left = curr.left.left
      * 6. 让当前节点的右节点为新构造的节点 curr.right = newCurr
@@ -174,4 +174,15 @@ public class Node {
                 right == null ? 0 : right.height())
                 + 1;
     }
+
+    public int leftHeight() {
+        if (left == null) return 0;
+        return left.height();
+    }
+
+    public int rightHeight() {
+        if (right == null) return 0;
+        return right.height();
+    }
+
 }
