@@ -5,3 +5,4 @@ target/
 dev/
 build/
 .gradle/
+**/build/
