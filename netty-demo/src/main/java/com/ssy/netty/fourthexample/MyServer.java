@@ -1,6 +1,5 @@
 package com.ssy.netty.fourthexample;
 
-import com.ssy.netty.thirdexample.MyChatServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -23,10 +22,10 @@ public class MyServer {
         serverBootstrap
                 .group(boss, worker)
                 .channel(NioServerSocketChannel.class)
-                .handler(new LoggingHandler(LogLevel.INFO))
-                .childHandler(new MyChatServerInitializer());
+                .handler(new LoggingHandler(LogLevel.INFO)) // handler是针对boss来作用的
+                .childHandler(new MyServerInitializer()); // childHandler是针对worker来作用的
         try {
-            ChannelFuture channelFuture = serverBootstrap.bind(8877).sync();
+            ChannelFuture channelFuture = serverBootstrap.bind(8899).sync();
             channelFuture.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
