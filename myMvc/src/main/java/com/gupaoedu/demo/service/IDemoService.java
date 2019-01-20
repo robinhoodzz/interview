@@ -1,6 +1,6 @@
 package com.gupaoedu.demo.service;
 
-import com.gupaoedu.mvcframework.annotation.GpService;
+import com.gupaoedu.demo.mvcframework.annotation.GpService;
 
 /**
  * Created by robin on 19/1/18.
