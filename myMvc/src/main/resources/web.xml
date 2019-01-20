@@ -12,7 +12,7 @@
     <!-- 定义DispatcherServlet服务 -->
     <servlet>
         <servlet-name>gpMvc</servlet-name>
-        <servlet-class>com.gupaoedu.mvcframework.servlet.GPDispacherServlet</servlet-class>
+        <servlet-class>com.gupaoedu.demo.mvcframework.servlet.GPDispacherServlet</servlet-class>
         <init-param>
             <param-name>contextConfigLocation</param-name>
             <param-value>application.properties</param-value>

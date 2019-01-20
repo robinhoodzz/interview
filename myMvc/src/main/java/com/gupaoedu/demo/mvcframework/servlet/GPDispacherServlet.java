@@ -1,10 +1,7 @@
 package com.gupaoedu.demo.mvcframework.servlet;
 
 
-import com.gupaoedu.demo.mvcframework.annotation.GPController;
-import com.gupaoedu.demo.mvcframework.annotation.GpAutowried;
-import com.gupaoedu.demo.mvcframework.annotation.GpRequestMapping;
-import com.gupaoedu.demo.mvcframework.annotation.GpService;
+import com.gupaoedu.demo.mvcframework.annotation.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -14,10 +11,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by robin on 19/1/18.
@@ -28,7 +28,8 @@ public class GPDispacherServlet extends HttpServlet {
     private Properties properties = new Properties();
     private List<String> classNames = new ArrayList<>();
     private Map<String, Object> ioc = new HashMap<>();
-    private Map<String, Method> handlerMapping = new HashMap<>();
+        private Map<String, Method> handlerMapping = new HashMap<>();
+//    private List<Handler> handlerMapping = new ArrayList<>();
 
     // 初始化阶段
     @Override
@@ -81,17 +82,26 @@ public class GPDispacherServlet extends HttpServlet {
 
             Method[] methods = clazz.getMethods();
             for (Method method : methods) {
-                if (clazz.isAnnotationPresent(GpRequestMapping.class)) {
-                    continue;
-                }
+
+                if (!clazz.isAnnotationPresent(GpRequestMapping.class)) continue;
 
 
                 GpRequestMapping requestMapping = method.getAnnotation(GpRequestMapping.class);
                 String url = (baseUrl + requestMapping.value()).replaceAll("/+", "/");
-
                 handlerMapping.put(url, method);
-
                 System.out.println("Mapping " + url + "," + method);
+
+
+                /**
+                 *
+                 * GpRequestMapping requestMapping = method.getAnnotation(GpRequestMapping.class);
+                 * String regex = ("/" + baseUrl + requestMapping.value()).replaceAll("/+", "/");
+                 * Pattern pattern = Pattern.compile(regex);
+                 * handlerMapping.add(new Handler(pattern, entry.getValue(), method));
+                 * System.out.println("Mapping " + regex + "," + method);
+                 *
+                 */
+
 
             }
         }
@@ -155,7 +165,7 @@ public class GPDispacherServlet extends HttpServlet {
                 } else if (clazz.isAnnotationPresent(GpService.class)) {
                     GpService gpService = clazz.getAnnotation(GpService.class);
                     String beanName = gpService.value();
-                    if (!"".equals(beanName.trim())) {
+                    if ("".equals(beanName.trim())) {
                         beanName = this.lowerFirstCase(clazz.getSimpleName());
                     }
 
@@ -227,9 +237,74 @@ public class GPDispacherServlet extends HttpServlet {
                 e.printStackTrace();
             }
         }
-
-
     }
+
+//    private void doDispatch(HttpServletRequest req, HttpServletResponse resp) {
+//        try {
+//            Handler handler = getHandler(req);
+//            if (handler == null) {
+//                // 如果没有匹配上, 返回404错误
+//                resp.getWriter().write("404 Not Found");
+//                return;
+//            }
+//
+//            // 获取方法的参数列表
+//            Class<?>[] paramTypes = handler.method.getParameterTypes();
+//
+//            // 保存所有需要自动赋值的参数
+//            Object[] paramValues = new Object[paramTypes.length];
+//
+//            Map<String, String[]> params = req.getParameterMap();
+//
+//            for (Map.Entry<String, String[]> param : params.entrySet()) {
+//                String value = Arrays.toString(param.getValue()).replaceAll("\\[|\\]]", "");
+//
+//                // 如果找到匹配的对象, 则开始填充参数值
+//                if(!handler.paramIndexMapping.containsKey(param.getKey())) continue;
+//
+//                int index = handler.paramIndexMapping.get(param.getKey());
+////                paramValues[index] = convert(paramTypes[index], value);
+//            }
+//
+//            // 设置方法中的request和response对象
+//            int reqIndex = handler.paramIndexMapping.get(HttpServletRequest.class.getName());
+//            paramValues[reqIndex] = req;
+//            int respIndex = handler.paramIndexMapping.get(HttpServletResponse.class.getName());
+//            paramValues[respIndex] = resp;
+//
+//
+//            handler.method.invoke(handler.controller, paramValues);
+//
+//
+//
+//
+//
+//
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+//    private Handler getHandler(HttpServletRequest req) throws Exception {
+//        if (handlerMapping.isEmpty()) return null;
+//
+//        String url = req.getRequestURI();
+//        String contextPath = req.getContextPath();
+//        url = url.replace(contextPath, "").replaceAll("/+", "/");
+//
+//        for (Handler handler : handlerMapping) {
+//            try {
+//                Matcher matcher = handler.pattern.matcher(url);
+//                if(!matcher.matches()) continue;
+//
+//                return handler;
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return null;
+//    }
 
 
     @Override
@@ -244,14 +319,62 @@ public class GPDispacherServlet extends HttpServlet {
         String contextPath = req.getContextPath();
         url = url.replaceAll(contextPath, "").replaceAll("/+", "/");
 
-
-        if(!handlerMapping.containsKey(url)){
+        if (!handlerMapping.containsKey(url)) {
             resp.getWriter().write("404 Not Found");
             return;
         }
         Method method = handlerMapping.get(url);
+        // 反射的方法
+        // 需要2个参数, 第一个参数: 拿到这个method的instance, 第二个参数:要拿到实参, 从request中取值
+//        method.invoke()
+    }
+
+    /**
+     * Handler 记录 Controller中的RequestMapping和Method的关系
+     */
+    private class Handler {
+        protected Object controller; // 保存方法对应的实例
+        protected Method method;     // 保存映射的方法
+        protected Pattern pattern;
+        protected Map<String, Integer> paramIndexMapping; // 参数顺序
+
+        protected Handler(Pattern pattern, Object controller, Method method) {
+            this.controller = controller;
+            this.method = method;
+            this.pattern = pattern;
+
+            paramIndexMapping = new HashMap<>();
+            this.putParamIndexMapping(method);
+
+        }
+
+        private void putParamIndexMapping(Method method) {
+
+            // 提取方法中加了注解的参数
+            Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            for (int i = 0; i < parameterAnnotations.length; i++) {
+                for (Annotation a : parameterAnnotations[i]) {
+                    if (a instanceof GpRequestParam) {
+                        String paraName = ((GpRequestParam) a).value();
+                        if (!"".equals(paraName)) {
+                            paramIndexMapping.put(paraName, i);
+                        }
+                    }
+                }
+            }
 
 
+            // 提起方法中的request和response参数
+            Class<?>[] paramsTypes = method.getParameterTypes();
+            for (int i = 0; i < paramsTypes.length; i++) {
+                Class<?> type = paramsTypes[i];
+                if (type == HttpServletRequest.class) {
+                    paramIndexMapping.put(type.getName(), i);
+                }
+            }
+        }
     }
 
 }
+
+
