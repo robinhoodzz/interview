@@ -16,7 +16,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -26,9 +25,15 @@ public class GPDispacherServlet extends HttpServlet {
 
     // 所有的配置信息都存入了 Properties中, Key - Value
     private Properties properties = new Properties();
+
+    // 保存所有被扫描到的类名
     private List<String> classNames = new ArrayList<>();
+
+    // 核心IOC容器, 保存所有初始化&实例化的Bean
     private Map<String, Object> ioc = new HashMap<>();
-        private Map<String, Method> handlerMapping = new HashMap<>();
+
+    // 保存所有的URL和方法的映射关系
+    private Map<String, Method> handlerMapping = new HashMap<>();
 //    private List<Handler> handlerMapping = new ArrayList<>();
 
     // 初始化阶段
@@ -50,16 +55,24 @@ public class GPDispacherServlet extends HttpServlet {
          */
 
         // 1. 加载配置文件
-        doLoadConfig(config.getInitParameter("contextConfigLocation"));
-        // 2. 根据配置文件扫描所有的相关的类
-        doScanner(properties.getProperty("scanPackage"));
-        // 3. 初始化所有的相关类的实例, 并且将其放入到IOC容器中, 也就是Map中
-        doInstance();
-        // 4. 实现(自动) 依赖注入
-        doAutoWired();
-        // 5. 初始化HandlerMapping
-        doInitHandlerMapping();
+        this.doLoadConfig(config.getInitParameter("contextConfigLocation"));
 
+        // 2. 根据配置文件扫描所有的相关的类
+        this.doScanner(properties.getProperty("scanPackage"));
+
+        // 3. 初始化所有的相关类的实例, 并且将其放入到IOC容器中, 也就是Map中
+        this.doInstance();
+
+        // 4. 实现(自动) 依赖注入
+        this.doAutoWired();
+
+        // 5. 初始化HandlerMapping
+        this.doInitHandlerMapping();
+
+        // 6.等待请求, 匹配URL, 定位方法, 反射调用执行
+        // 调用doGet和doPost方法
+
+        // 提示信息
         System.out.println("--- GP mvc is init ---");
     }
 
@@ -70,24 +83,27 @@ public class GPDispacherServlet extends HttpServlet {
         for (Map.Entry<String, Object> entry : ioc.entrySet()) {
             Class<?> clazz = entry.getValue().getClass();
             // 判断
-            if (clazz.isAnnotationPresent(GPController.class)) {
+            if (!clazz.isAnnotationPresent(GPController.class)) {
                 continue;
             }
 
-            String baseUrl = null;
+            String baseUrl = ""; // 此处不能设置为null, 因为后面拼接的时候, 会变成 null/xxx 这样.
+            // 获取Controller的url配置
             if (clazz.isAnnotationPresent(GpRequestMapping.class)) {
                 GpRequestMapping gpRequestMapping = clazz.getAnnotation(GpRequestMapping.class);
                 baseUrl = gpRequestMapping.value();
             }
 
+            // 获取Method的url配置
             Method[] methods = clazz.getMethods();
             for (Method method : methods) {
 
-                if (!clazz.isAnnotationPresent(GpRequestMapping.class)) continue;
+                // 没有添加RequestMapping注解的直接忽略
+                if (!method.isAnnotationPresent(GpRequestMapping.class)) continue;
 
-
+                // 映射URL
                 GpRequestMapping requestMapping = method.getAnnotation(GpRequestMapping.class);
-                String url = (baseUrl + requestMapping.value()).replaceAll("/+", "/");
+                String url = ("/" + baseUrl + "/" + requestMapping.value()).replaceAll("/+", "/");
                 handlerMapping.put(url, method);
                 System.out.println("Mapping " + url + "," + method);
 
@@ -160,22 +176,23 @@ public class GPDispacherServlet extends HttpServlet {
 
 
                 if (clazz.isAnnotationPresent(GPController.class)) {
+
+                    // 默认将首字母小写作为beanName
                     String beanName = this.lowerFirstCase(clazz.getSimpleName());
                     ioc.put(beanName, clazz.newInstance());
                 } else if (clazz.isAnnotationPresent(GpService.class)) {
                     GpService gpService = clazz.getAnnotation(GpService.class);
                     String beanName = gpService.value();
-                    if ("".equals(beanName.trim())) {
-                        beanName = this.lowerFirstCase(clazz.getSimpleName());
+                    if (!"".equals(beanName.trim())) {
+                        ioc.put(beanName, clazz.newInstance());
+                        continue;
                     }
 
-                    Object instance = clazz.newInstance();
-                    ioc.put(beanName, instance);
-
+                    // 如果自己没有设置别名, 就按照接口类型创建一个实例
                     Class<?>[] interfaces = clazz.getInterfaces();
                     for (Class<?> i : interfaces) {
                         // 将接口的类型作为key
-                        ioc.put(i.getName(), instance);
+                        ioc.put(i.getName(), clazz.newInstance());
                     }
                 } else {
                     continue;
@@ -204,20 +221,30 @@ public class GPDispacherServlet extends HttpServlet {
      */
     private void doScanner(String packAgeName) {
 
-        // 进行递归扫描
-        URL url = this.getClass().getClassLoader().getResource("/" + packAgeName.replaceAll("\\.", "/"));
-        File classDir = new File(url.getFile());
-        for (File file : classDir.listFiles()) {
-            if (file.isDirectory()) {
-                doScanner(packAgeName + "." + file.getName());
+        try {
 
-            } else {
-                String clazzName = packAgeName + "." + file.getName().replace(".class", "");
-                classNames.add(clazzName);
+
+            // 进行递归扫描
+            URL url = this.getClass().getClassLoader().getResource("/" + packAgeName.replaceAll("\\.", "/"));
+//            File classDir = new File(url.getFile());       // 路径中没有中文的话, 可以这样做
+            File classDir = new File(url.toURI().getPath()); // 路径中有中文的处理
+            for (File file : classDir.listFiles()) {
+
+                // 如果是文件夹, 继续递归
+                if (file.isDirectory()) {
+                    doScanner(packAgeName + "." + file.getName());
+
+                } else {
+                    String clazzName = packAgeName + "." + file.getName().replace(".class", "");
+                    classNames.add(clazzName);
+                }
+
             }
 
-        }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -315,18 +342,85 @@ public class GPDispacherServlet extends HttpServlet {
     // 运行时的方法
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String url = req.getRequestURI();
-        String contextPath = req.getContextPath();
-        url = url.replaceAll(contextPath, "").replaceAll("/+", "/");
+//        String url = req.getRequestURI();
+//        String contextPath = req.getContextPath();
+//        url = url.replaceAll(contextPath, "").replaceAll("/+", "/");
+//
+//        if (!handlerMapping.containsKey(url)) {
+//            resp.getWriter().write("404 Not Found");
+//            return;
+//        }
+//        Method method = handlerMapping.get(url);
+//        // 反射的方法
+//        // 需要2个参数, 第一个参数: 拿到这个method的instance, 第二个参数:要拿到实参, 从request中取值
+////        method.invoke()
 
-        if (!handlerMapping.containsKey(url)) {
-            resp.getWriter().write("404 Not Found");
+        try {
+            this.doDispatch(req, resp);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.getWriter().write("500 Exception, Details: \r\n"
+                    + Arrays.toString(e.getStackTrace())
+                    .replaceAll("\\[|\\]", "")
+                    .replaceAll("\\s", "\r\n")
+            );
+        }
+
+    }
+
+    private void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        if (this.handlerMapping.isEmpty()) return;
+
+        String url = req.getRequestURI();
+        String contextpath = req.getContextPath();
+        url = url.replace(contextpath, "").replaceAll("/+", "/");
+
+        if (!this.handlerMapping.containsKey(url)) {
+            resp.getWriter().write("404 Not Found!");
             return;
         }
-        Method method = handlerMapping.get(url);
-        // 反射的方法
-        // 需要2个参数, 第一个参数: 拿到这个method的instance, 第二个参数:要拿到实参, 从request中取值
-//        method.invoke()
+
+        Map<String, String[]> parameterMap = req.getParameterMap(); // 请求的参数列表
+        Method method = this.handlerMapping.get(url);               // 请求对应的方法
+
+        // 获取方法的参数列表(入参的类型) (HttpServletRequest req, HttpServletResponse resp, String a) 中的类声明
+        Class<?>[] paramTypes = method.getParameterTypes();
+        // 获取请求的参数               (HttpServletRequest req, HttpServletResponse resp, String a) 中的对象名
+        Object[] paramValues = new Object[paramTypes.length];
+
+        // 方法的参数列表
+        for (int i = 0; i < paramTypes.length; i++) {
+            Class<?> paramType = paramTypes[i];
+            if (paramType == HttpServletRequest.class) {
+                paramValues[i] = req;
+                continue;
+            } else if (paramType == HttpServletResponse.class) {
+                paramValues[i] = resp;
+                continue;
+            } else if (paramType == String.class) {
+                for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+                    String value = Arrays.toString(entry.getValue())
+                            .replaceAll("\\[|\\]", "")
+                            .replaceAll("\\s", "");
+                    paramValues[i] = value;
+                }
+            } else if (paramType == Integer.class) {
+                for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+                    String value = Arrays.toString(entry.getValue())
+                            .replaceAll("\\[|\\]", "")
+                            .replaceAll("\\s", "");
+                    paramValues[i] = Integer.valueOf(value);
+                }
+            }
+        }
+
+
+        try {
+            String beanName = this.lowerFirstCase(method.getDeclaringClass().getSimpleName());
+            method.invoke(this.ioc.get(beanName), paramValues);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**

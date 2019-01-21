@@ -32,13 +32,12 @@ public class DemoAction {
         }
     }
 
-    @GpRequestMapping("/edit.json")
-    public void edit(HttpServletRequest req, HttpServletResponse resp,
-                     @GpRequestParam("id") Integer id) {
+    @GpRequestMapping("/add.json")
+    public void add(HttpServletRequest req, HttpServletResponse resp,
+                    @GpRequestParam("a") Integer a, @GpRequestParam("b") Integer b) {
 
-        String result = demoService.getName();
         try {
-            resp.getWriter().write(result);
+            resp.getWriter().write(a + " + " + b + " = " + (a + b));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -48,9 +47,8 @@ public class DemoAction {
     public void remove(HttpServletRequest req, HttpServletResponse resp,
                        @GpRequestParam("id") Integer id) {
 
-        String result = demoService.getName();
         try {
-            resp.getWriter().write(result);
+            resp.getWriter().write("id 为 " + id + " 已经删除!");
         } catch (Exception e) {
             e.printStackTrace();
         }

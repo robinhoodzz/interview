@@ -1,14 +1,10 @@
 package com.gupaoedu.demo.service;
 
-import com.gupaoedu.demo.mvcframework.annotation.GpService;
-
 /**
  * Created by robin on 19/1/18.
  */
-@GpService
-public class IDemoService {
+public interface IDemoService {
 
-    public String getName() {
-        return null;
-    }
+    String getName();
+
 }
