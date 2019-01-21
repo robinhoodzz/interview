@@ -1,6 +1,9 @@
 ### 可以从这里着手, 鼓泡IOC的代码和注释
 https://www.jianshu.com/p/f57db8b29be9
 
+### 其他JAVA相关面试
+http://www.iocoder.cn/Fight/Interview-poorly-asked-Spring-IOC-process-1/
+
 ### 经典面试题
 1. 什么是Spring框架? Spring框架有哪些主要模块?
 2. 使用Spring框架能带来什么好处?
