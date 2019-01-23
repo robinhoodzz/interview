@@ -14,4 +14,18 @@ public class StringTest {
         System.out.println(a + b);
 
     }
+
+    @Test
+    public void testFor() throws Exception {
+
+        for (int i = 0; i < 3; i++) {
+            System.out.println(i);
+        }
+        System.out.println();
+        for (int i = 0; i < 3; ++i) {
+            System.out.println(i);
+        }
+
+    }
+
 }
