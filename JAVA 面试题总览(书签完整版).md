@@ -189,12 +189,49 @@ JAVA基础
     深拷贝: 创建一个副本, 创建对象, 并创建引用的副本
 
 22. 数组和链表数据结构描述,各自的时间复杂度。
+    数组:
+        连续存储
+        随机访问
+        从栈中分配空间
+        需要初始分配长度
+
+    链表:
+        在开辟内存紧张时, 有效利用内存碎片空间
+        从堆中分配空间
+
+        存取方式    存储位置    存储空间    查找      插入/删除           空间分配
+    数组  顺序/随机   相邻      密度大     随机访问    平均移动n/2个元素      创建时就要分配
+    链表  顺序        不相邻    密度小     顺序访问   修改指针即可          需要的时候
+
+    https://blog.csdn.net/snow_wu/article/details/53172721
+
+
+
+
 23. error 和 exception 的区别,CheckedException,RuntimeException 的区别。
+
 24. 请列出 5 个运行时异常。
 25. 在自己的代码中,如果创建一个 java.lang.String 类,这个类是否可以被类加载器加载?为什么。
+    不可以
+    类加载的双亲委托模型
+    BootstrapClassLoader    rt.jat
+    ExtensionClassLoader    ext/lib/*.jar
+    APPClassLoader          CLASSPATH
+
+    即使自定义类加载器, 最终会到BootStrapClassLoader, 因为rt.jar里有java.lang.String类,并且已经被加载
+    会抛出SecurityException
+
+    http://www.cnblogs.com/jasonstorm/p/5663864.html
+
 26. 说一说你对 java.lang.Object 对象中 hashCode 和 equals 方法的理解。在什么场景 下需要重新实现这两个方法。
+    如果 两个对象 equals 为true, ashCode必须相等
+    对象需要在在集合里操作的时候, 需要重写
+
 27. 在 jdk1.5 中,引入了泛型,泛型的存在是用来解决什么问题。
+    泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数，泛型的好处是在编译的时候检查类型安全，并且所有的强制转换都是自动和隐式的，以提高代码的重用率
+
 28. 这样的 a.hashcode() 有什么用,与 a.equals(b)有什么关系。
+
 29. 有没有可能 2 个不相等的对象有相同的 hashcode。
 30. Java 中的 HashSet 内部是如何工作的。
 31. 什么是序列化,怎么序列化,为什么序列化,反序列化会遇到什么问题,如何解决。 32. java8 的新特性。
