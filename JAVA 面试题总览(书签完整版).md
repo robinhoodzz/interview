@@ -1,4 +1,8 @@
-JAVA基础
+https://blog.csdn.net/qq_35661171/article/details/80181192
+
+
+### JAVA基础
+
 1. JAVA 中的几种基本数据类型是什么,各自占用多少字节。
     1 bit: 二进制的一个数  位
     1 Byte = 8 bit       字节
@@ -157,7 +161,7 @@ JAVA基础
 
     https://www.cnblogs.com/bigmonkeys/p/7823268.html
 
-16. 为什么CGlib方式可以对接口实现代理。
+?16. 为什么CGlib方式可以对接口实现代理。
 
 17. final的用途。
     类         不能被继承
@@ -171,7 +175,7 @@ JAVA基础
     双重检查等   synchronized修饰符 + volatile修饰符
     内部类方式   利用JVM类加载机制, 首次主动使用类的时候加载,连接,初始化
 
-19. 如何在父类中为子类自动完成所有的 hashcode 和 equals 实现?这么做有何优劣。
+19. 如何在父类中为子类自动完成所有的 hashcode 和 equals 实现*?*这么做有何优劣。
 
 
 20. 请结合 OO 设计理念,谈谈访问修饰符 public、private、protected、default 在应用设计中的作用。
@@ -231,12 +235,272 @@ JAVA基础
     泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数，泛型的好处是在编译的时候检查类型安全，并且所有的强制转换都是自动和隐式的，以提高代码的重用率
 
 28. 这样的 a.hashcode() 有什么用,与 a.equals(b)有什么关系。
+    HashCode
+        用一个数字来标识一个对象
+        HashCode方提供了对象的HashCode值, 是一个native方法, 返回的默认值与System.identityHashCode(obj)一致
+        通常这个值是对象头部的一部分二进制位组成的数字, 具有一定的标识对象的意义, 但对不等于地址
+        
+    equals
+        equals相等则hashCode一定相等, hashCode相等的对象, 不一定equals相等
+    
 
 29. 有没有可能 2 个不相等的对象有相同的 hashcode。
+    有, HashCode不一定是唯一的.
+    原因: 因为HashCode的长度是固定的, 所以有可能产生Hash碰撞
+    
+    
 30. Java 中的 HashSet 内部是如何工作的。
-31. 什么是序列化,怎么序列化,为什么序列化,反序列化会遇到什么问题,如何解决。 32. java8 的新特性。
+    底层基于HashMap实现, 底层采用HashMap来保存元素.
+    初始容量大小 initial capacity为16, 负载因子 load factor是0.75
+    
+    
+31. 什么是序列化,怎么序列化,为什么序列化,反序列化会遇到什么问题,如何解决。
+    Serialization 是将对象的状态信息转换为可以存储或传输的形式
+    JVM停止后, 对象就会丢失, 所以序列化是一种途径来保持对象(类似持久化)
+    
+    实现Serializiable接口, 也就是该类被标记为可以序列化
+    
+    SerialVersionUID如果对不上, 则序列化后的数据 被 反序列化会报错
+    
+    
+    
+ 
+32. java8 的新特性。
 
 
 
+### JVM 知识
+1. 什么情况下会发生栈内存溢出
+    如果线程请求的栈深度大于虚拟机所允许的深度，将抛出StackOverflowError异常。 
+    如果虚拟机在动态扩展栈时无法申请到足够的内存空间，则抛出OutOfMemoryError异常。
+    
+    Java内存区域
+    
+        线程共享
+            堆
+            方法区
+        
+        线程独享
+            本地方法栈
+            虚拟机栈
+            程序计数器
+            
+    程序计数器
+        无内存溢出异常 OOM(out of memory)
+        当前字节码行号指示器
+        控制分支,跳转,循环
+        线程私有
+    
+    虚拟机栈
+        方法被执行的时候都会创建一个栈帧(栈中的一个元素)
+        栈帧存储 局部变量表, 操作数栈, 动态链接, 方法返回地址等
+        栈帧需要多少内存, 不受RunTime影响
+        
+        局部变量表
+            是一个变量存储空间
+            编译器可知的: 基本数据类型, 对象引用, 返回地址类型
+        操作数栈
+            加操作、赋值元算等
+        动态链接
+            运行期间转化为直接引用，这部分称为动态连接
+        方法返回地址
+            方法执行完2种退出方式:
+                方法返回到调用处
+                    调用者的程序计数器的值,保存在此
+                异常
+                    异常处理器
+
+    本地方法栈
+        与 虚拟机栈类似, 执行native方法
+
+    java堆
+        对象实例
+        数组
+        垃圾回收区域
+    
+    方法区
+        永久代
+        HotSpot没有永久代的概念
+        常量池
+        虚拟机加载的类, 常量, 静态变量, 编译后的代码
+        
+    内存溢出
+        Java堆
+            无限循环new对象,放入list,以不被垃圾回收
+        方法区
+            生成动态类, 或者调用String类型的intern()方法产生不同的String对象, 并存入list
+            前者测试常量池, 后者测试方法区中非常量池的部分
+            
+        虚拟机栈 & 本地方法栈
+            StackOverFlowError:     递归调用一个简单的方法,没有退出条件或条件不满足
+            OutOfMemoryException:   无线循环创建线程
+
+    内存泄漏
+        内存泄露是指分配出去的内存没有被回收回来，由于失去了对该内存区域的控制，因而造成了资源的浪费
+        
+        
+    http://wiki.jikexueyuan.com/project/java-vm/storage.html
+    
+        
+        
+        
+        
+
+2. JVM 的内存结构，Eden 和 Survivor 比例
+    eden 和 survior 是按8比1分配的 
+    
+    为什么要分代:
+    其实不分代完全可以，分代的唯一理由就是优化GC性能
+    很多对象生存时间很短, 新生对象很少引用生存时间长的对象
+    
+    那我们所有的对象都在一块, GC的时候我们要找到哪些对象没用，这样就会对堆的所有区域进行扫描
+    年轻代分3个区: 
+        Eden区               比例:8
+        Survivor from区      比例:1
+        Survivor to区        比例:1
+
+    因为年轻代的对象都是朝生夕死的, 所以年轻代的垃圾回收算法是复制算法. 内存氛围2块,当这一块内存用完, 就将或者的对象复制到另一块上面
+    这就是 from区 和 to区
+    
+    GC开始时, 对象存在于Eden区和from区, to区是空的. 
+        个人理解: 初始化的对象在eden,这没问题,对象是如何进入from, to为何是空的
+            GC时, 存活对象从eden进入to,存活的从from进入to, 达到一定年龄的去老年代, 每GC一次,年龄就增加1
+            GC后, eden和from被清空, 此时, from和to互换角色, 不论怎么样,都保证survivor的to区是空的
+            当to区满时, 将所有对象移动到老年代
+        
+    https://blog.csdn.net/lojze_ly/article/details/49456255
+
+3. jvm 中一次完整的 GC 流程是怎样的，对象如何晋升到老年代，说说你知道的几种主要的jvm 参数。
+    GC分为minor GC, full GC
+        minorGC
+            1. 原因: eden空间不足
+            2. 目的: 清空eden+from所有no ref的对象占用的内存,
+            3. 做法: copy到to区, 一些对象晋升到old区(to放不下的且存活次数超过turning threshold)
+        full GC
+            1. 原因: old空间不足,perm空间不足, 显示调用了System.GC()
+            2. 目的: 清空整个heap中no ref对象, 和permgen永久代中已经被卸载的classloader中记载的class信息
+            3. 做法: 同2
+    重要参数:
+        -XX:newSize         指定初始新生代大小
+        -XX:maxNewSize      指定最大新生代大小       -XX:MaxNewSize 最大可以设置为-Xmx/2
+        -XX:newRatio        设置新生代和老年代的相对大小  =3 指定老年代/新生代为3/1
+        -XX:survivorRatio   =10 表示伊甸园区(Eden)是 幸存区To 大小的10倍
+        
+        
+    
+?4. 你知道哪几种垃圾收集器，各自的优缺点，重点讲下 cms，包括原理，流程，优缺点
+    Serial、parNew、ParallelScavenge、SerialOld、ParallelOld、CMS、G1 
+    
+    serial收集器
+        新生代, 复制算法, 单线程, 暂停其他所有线程(stop the world)
+    parNew收集器
+        serial的多线程版本
+        两者都能与CMS（concurrent mark sweep）收集器配合使用；三者都关注尽可能缩短垃圾收集时用户线程的停顿时间。
+    Parallel Scavenges收集器
+        新生代, 复制算法, 多线程, 吞吐量
+    Serial Old收集器
+        老年代
+        单线程
+        标记-整理算法
+    Parallel Old收集器
+        老年代
+        多线程
+        标记-整理算法
+    CMS(concurrent mark sweep)
+        最短停顿时间为目标的收集器
+        标记-清除
+        无法处理浮动垃圾
+        会有大量空间碎片产生
+    G1
+        基于复制算法
+        不产生空间碎片
+        
+    CMS收集器（Mark Sweep :标记-清除 算法）：一种以获取最短回收停顿时间为目标的收集器。目前很大一部分的Java应用集中在互联网站或者B/S系统的服务端上.
+    
+    https://wangkang007.gitbooks.io/jvm/content/chapter1.html
+
+?5. 你知道哪几种垃圾收集器，各自的优缺点，重点讲下 cms 和 G1，包括原理，流程，优缺点。
+    https://wangkang007.gitbooks.io/jvm/content/chapter1.html
+
+?6. 垃圾回收算法的实现原理。
+    http://www.importnew.com/13493.html
+
+?7. 当出现了内存溢出，你怎么排错。
+    首先分析是什么类型的内存溢出，对应的调整参数或者优化代码。 
+    https://wangkang007.gitbooks.io/jvm/content/4jvmdiao_you.html
+
+?8. JVM 内存模型的相关知识了解多少，比如重排序，内存屏障，happen-before，主内存，工作内存
+    内存屏障：为了保障执行顺序和可见性的一条cpu指令
+    重排序：为了提高性能，编译器和处理器会对执行进行重拍 
+    happen-before：操作间执行的顺序关系。有些操作先发生。 
+    主内存：共享变量存储的区域即是主内存 
+    工作内存：每个线程copy的本地内存，存储了该线程以读/写共享变量的副本 
+    http://ifeve.com/java-memory-model-1/ 
+    http://www.jianshu.com/p/d3fda02d4cae 
+    http://blog.csdn.net/kenzyq/article/details/50918457
+
+9. 简单说说你了解的类加载器。
+    类加载器的分类（bootstrap,ext,app,curstom），类加载的流程(load-link-init)
+    
+    加载
+        加载字节码数据到内存
+    验证
+        加载类的正确性
+    准备
+        为静态变量分配内存. 赋0值
+    解析
+        符号引用 转为 直接引用
+    初始化
+        为类的静态变量赋予正确的值
+        
+    初始化触发条件
+        new一个对象
+        访问某个类或接口的静态变量
+        调用类的静态方法
+        发射 Class.forName("com.xxx");
+        初始化一个类的子类, 父类也会被初始化
+        JVM启动时标明的启动类
+
+    https://blog.csdn.net/gjanyanlig/article/details/6818655/
+    
+
+10. 讲讲 JAVA 的反射机制。
+    Java程序在运行状态可以动态的获取类的所有属性和方法，并实例化该类，调用方法的功能
+    
+?11. 你们线上应用的 JVM 参数有哪些。
+
+
+12. g1 和 cms 区别,吞吐量优先和响应优先的垃圾收集器选择。
+
+    Cms是以获取最短回收停顿时间为目标的收集器。基于标记-清除算法实现。比较占用cpu资源，切易造成碎片。 
+    G1是面向服务端的垃圾收集器，是jdk9默认的收集器，基于标记-整理算法实现。可利用多核、多cpu，保留分代，实现可预测停顿，可控。 
+    http://blog.csdn.net/linhu007/article/details/48897597 
+
+?13. 怎么打出线程栈信
+    1, 多线程打印? https://blog.csdn.net/hello_worldee/article/details/77824025
+    2, jstack      http://www.cnblogs.com/zhuqq/p/5938187.html 
+
+14. 请解释如下 jvm 参数的含义
+    -server                                     服务器模式
+    -Xms512m                                    初始堆空间
+    -Xmx512m                                    最大堆空间
+    -Xss1024K                                   栈空间
+    -XX:PermSize=256m                           初始永久带空间
+    -XX:MaxPermSize=512m                        最大永久带空间
+    -XX:MaxTenuringThreshold=20                 对象的生命周期
+    -XX:CMSInitiatingOccupancyFraction=80       老年代的内存在使用到70%的时候，就开始启用CMS
+    -XX:+UseCMSInitiatingOccupancyOnly          按照你设置的比率来启用CMS GC
+    -XX:NewSize                                 用于设置年轻带的大小，建议设为整个堆大小的1/3或1/4，两个值(和下面)设为一样大
+    -XX:MaxNewSize                              最大年轻代的大小
+    -XX:+SurvivorRatio                          用于设置Eden和其中一个Survivor的比值。这个值也比较重要
+    -XX:++PrintTenuringDistribution             用于显示每次Minor Gc是Survivor区中个年龄段的对象的大小
+    -XX:InitialTenuringThreshold                用于设置晋升到老年代的对象年龄的最小值和最大值，每个对象在坚持过一次Minor Gc之后，年龄就加1
+    -XX:MaxTenuringThreshold                    最大
+    
+
+
+### 开源框架知识
+
+    
 
 
