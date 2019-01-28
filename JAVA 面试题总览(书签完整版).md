@@ -234,7 +234,7 @@ https://blog.csdn.net/qq_35661171/article/details/80181192
 27. 在 jdk1.5 中,引入了泛型,泛型的存在是用来解决什么问题。
     泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数，泛型的好处是在编译的时候检查类型安全，并且所有的强制转换都是自动和隐式的，以提高代码的重用率
 
-28. 这样的 x.hashcode() 有什么用,与 x.equals(b)有什么关系。
+28. 这样的 a.hashcode() 有什么用,与 a.equals(b)有什么关系。
     HashCode
         用一个数字来标识一个对象
         HashCode方提供了对象的HashCode值, 是一个native方法, 返回的默认值与System.identityHashCode(obj)一致
