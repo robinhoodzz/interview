@@ -42,4 +42,43 @@ public class StringTest {
         }
 
     }
+
+    @Test
+    public void testHashCode() throws Exception {
+
+        TestObject a = new TestObject();
+        TestObject b = new TestObject();
+        TestObject c = a;
+
+        a.setX(1);
+        b.setX(2);
+        c.setX(3);
+
+        System.out.println(a == b);
+        System.out.println(a.equals(b));
+        System.out.println();
+
+        System.out.println(a == c);
+        System.out.println(a.equals(c));
+        System.out.println();
+
+        System.out.println(a.getX());
+        System.out.println(b.getX());
+        System.out.println(c.getX());
+    }
+
+    @Test
+    public void testPlus() throws Exception {
+        System.out.println(testPlus1());
+        System.out.println(testPlus2());
+    }
+
+    private int testPlus1() {
+        int a = 1;
+        return a++;
+    }
+    private int testPlus2() {
+        int a = 1;
+        return ++a;
+    }
 }

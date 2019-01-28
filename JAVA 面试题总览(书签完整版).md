@@ -234,7 +234,7 @@ https://blog.csdn.net/qq_35661171/article/details/80181192
 27. 在 jdk1.5 中,引入了泛型,泛型的存在是用来解决什么问题。
     泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数，泛型的好处是在编译的时候检查类型安全，并且所有的强制转换都是自动和隐式的，以提高代码的重用率
 
-28. 这样的 a.hashcode() 有什么用,与 a.equals(b)有什么关系。
+28. 这样的 x.hashcode() 有什么用,与 x.equals(b)有什么关系。
     HashCode
         用一个数字来标识一个对象
         HashCode方提供了对象的HashCode值, 是一个native方法, 返回的默认值与System.identityHashCode(obj)一致
@@ -502,5 +502,148 @@ https://blog.csdn.net/qq_35661171/article/details/80181192
 ### 开源框架知识
 
     
+### 操作系统
+
+### 多线程
+
+1. 多线程的几种实现方式,什么是线程安全。
+    不算线程池的话, 3种
+    1. 实现 Runnalbe接口
+    2. 继承 Thread类
+    3. 实现 Callable接口
+
+    进程 & 线程区别
+        进程: 独立的运行环境, 被看做是一个程序和应用
+        线程: 是进程中的一个任务
+    存在意义
+        提高程序执行效率
+        共享堆内存
+
+    线程安全
+        线程安全是: 线程安全的代码,在多个线程同时执行也能工作的代码, 且保证多线程时, 正确的操作共享数据.
+
+
+2. volatile 的原理,作用,能代替锁么。
+    volatile利用内存的栅栏机制来保持变量的一致性. 不能代替锁, 其只具备数据可见性一致性, 不具备原子性
+
+3. 画一个线程的生命周期状态图。
+
+    状态
+        1.初始 new: 新创建了一个线程对象, 但是还没有调用start()方法
+        2.运行 runnable: java线程中将就绪(ready)和运行中(running)两种状态笼统称为"运行"
+                       线程对象创建后, 其他线程()调用了该对象的start()方法.
+                        该状态的线程位于可运行的线程池中, 等待线程调度的选中, 获取CPU的使用权,此时处于ready状态
+        3.阻塞 block: 表示线程阻塞于锁
+        4.等待 waiting: 进入该状态的线程需要等待其他线程做出特定的动作(通知或中断)
+        5.超时等待 timed_waiting: 该状态不同于waiting, 它可以在指定的时间后自行返回
+        6.终止 terminated: 表示该线程已经执行完毕
+
+    状态变更
+        1. 初始状态
+            实现Runnable接口/继承Thread类/实现Callable接口(基于线程池) new一个实例出来, 线程就进入了初始状态
+        2.1. 就绪状态
+            1. (重要)就绪状态只是说你资格运行, 调度程序没有挑选到你, 你就永远是就绪状态
+            2. (重要)调用线程的start()方法, 次线程进入[就绪状态]
+            3. 当线程sleep()方法结束, 其他线程join()结束, 等待用户输入完毕, 某个线程拿到锁对象, 线程将进入[就绪状态]
+            4. 当前线程时间片用完了, 调用当前线程的yield()方法, 当前线程进入就绪状态
+            5. 锁池里的线程拿到对象锁后, 就进入[就绪状态]
+
+        2.2 运行状态
+            线程调度程序从可运行池中选择一个线程作为当前线程所处的状态. 这是线程进入运行状态的唯一方式
+
+        3. 阻塞状态
+            线程在进入synchronized方法/代码块, 获取锁的状态
+        4. 等待
+            不会被分配CPU资源, 除非显示地唤醒, 否则永远处于无限期等待状态
+        5. 超时等待
+            不会被分配CPU资源, 达到一定时间后, 自动唤醒
+        6. 终止状态
+            1. 当线程run()方法执行完后, 或者主线程main()方法完成时, 我们认为它就终止了.
+            2. 在终止的线程上调用start()方法
+
+4. sleep 和 wait 的区别。
+    sleep: 线程进入timed_waiting状态, 到达执行时间后, 会恢复成ready状态, 等待调度选中从而进入running状态
+    wait:  线程进入waiting状态, 在没有被显示调用 该线程.notify() 或者 notifyAll()方法前, 将一直处于waiting状态, 不会执行
+
+    sleep:  休眠线程    静态方法    依旧持有锁   指定时间自动唤醒
+    wait:   等待     object方法    释放锁      不会自动唤醒
+
+5. sleep 和 sleep(0)的区别。
+    sleep(0) 并非真的要线程挂起0毫秒, 意义在于让线程放弃cpu资源, 释放一些未用的时间片给其他线程或进程使用. 相当于让位操作
+
+
+6. Lock 与 Synchronized 的区别。
+    相同点: 都保证了在高并发下的原子性和可见性
+
+    synchronized 释放锁交给自身控制, 且某些互斥场景不符合逻辑, 无法进行干预, 不可人为中断
+    lock有ReentrantLock和readwritelock两者, 添加了类似锁投票, 定时锁等候,和可中断锁等候的一些特性. 此外在激烈静态下的更佳性能
+
+?7. synchronized 的原理是什么,一般用在什么地方(比如加在静态方法和非静态方法的区别,
+        静态方法和非静态方法同时执行的时候会有影响吗)解释以下名词:重排序,自旋锁,偏向锁,轻量级锁,可重入锁,公平锁,非公平锁,乐观锁,悲观锁。
+
+    synchronized 的原理
+
+        反编译后
+        3: monitorenter (重点)
+        4: getstatic
+        5: ldc
+        6: monitorexit (重点)
+
+        monitorenter:
+        每个对象有一个监视器锁. 当monitor被占用时就会处于锁定状态, 线程执行monitorenter指令时会尝试获取monitor的所有权, 过程如下:
+        1. 如果monitor的进入数为0, 则该线程进入monitor, 然后将进入设置数设置为1. 该线程为monitor的所有者
+        2. 如果线程已经占有该monitor, 只是重新进入, 则进入monitor的进入数加1.
+        3. 如果其他线程已经占有该monitor,则该线程进入阻塞状态, 直到monitor的进入数为0, 才能再次获取monitor的所有权
+
+        monitorexit:
+        执行monitorexit的线程必须是monitor的所有者
+        执行指令时, monitor的进入数减1, 如果减1后进入数为0, 那线程退出monitor, 不再是这个monitor的所有者
+
+        所以 Synchronized关键字的原理是: 通过一个monitor的对象来完成, wait/notify等方法也是依赖于monitor对象,
+            这就是为什么只有在synchronized方法或代码块中才能调用wait/notify方法, 否则抛出IllegalMonitorStateException异常
+
+    自旋锁
+        当一个线程在获取锁时, 如果锁被其他线程持有, 那么该线程就会循环判断是否成功获取锁, 直到成功获取锁后, 退出循环
+        https://blog.csdn.net/qq_34337272/article/details/81252853
+
+
+
+    synchronized修饰不加static的方法，锁是加在单个对象上，不同的对象没有竞争关系；
+    修饰加了static的方法，锁是加载类上，这个类所有的对象竞争一把锁。
+    (https://www.cnblogs.com/guiqulai/articles/7342006.html)
+
+    https://blog.csdn.net/kirito_j/article/details/79201213#t3
+    https://blog.csdn.net/a314773862/article/details/54095819
+
+
+
+8. 用过哪些原子类,他们的原理是什么。
+    AtomicInteger, AtomicLong, AtomicReference, AtomicBoolean
+    基于CAS原语实现, 比较并交换, 最坏情况下是旋转锁()
+
+?9. JUC 下研究过哪些并发工具,讲讲原理。
+
+10. 用过线程池吗,如果用过,请说明原理,并说说 newCache 和 newFixed 有什么区别,构造函数的各个参数的含义是什么,比如 coreSize,maxsize 等。
+
+        newSingleThreadExecutor
+            返回一个包含单线程的Executor, 将多个任务交给此Executor时,
+            这个线程处理完一个任务后接着处理下一个任务
+            若该线程出现异常, 将会有一个新的线程来替代
+        newFixThreadPool
+            返回一个包含指定数目线程的线程池, 如果任务数量多于线程数目,
+            那么没有执行的线程必须等待, 直到有任务执行完为止
+        newCachedThreadPool
+            根据用户的任务数创建相应的线程来处理, 该线程池不会对线程数目加以限制, 完全依赖于JVM能创建线程数的数量, 可能引起内存不足
+
+
+
+        coreSize 核心线程数
+        maxSize  最大线程数
+
+
+
+
+
+
 
 
