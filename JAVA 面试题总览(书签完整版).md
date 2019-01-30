@@ -602,7 +602,7 @@ https://blog.csdn.net/qq_35661171/article/details/80181192
         所以 Synchronized关键字的原理是: 通过一个monitor的对象来完成, wait/notify等方法也是依赖于monitor对象,
             这就是为什么只有在synchronized方法或代码块中才能调用wait/notify方法, 否则抛出IllegalMonitorStateException异常
 
-    自旋锁
+    ?自旋锁
         当一个线程在获取锁时, 如果锁被其他线程持有, 那么该线程就会循环判断是否成功获取锁, 直到成功获取锁后, 退出循环
         https://blog.csdn.net/qq_34337272/article/details/81252853
 
@@ -622,6 +622,28 @@ https://blog.csdn.net/qq_35661171/article/details/80181192
     基于CAS原语实现, 比较并交换, 最坏情况下是旋转锁()
 
 ?9. JUC 下研究过哪些并发工具,讲讲原理。
+    java.util.concurrent包 简称JUC
+    Tools包含了5部分知识(5个工具类)
+        Executors
+        Semaphore
+        Exchanger
+        CyclicBarrier
+        CountDownLatch
+
+
+        Executors
+            工具类, 提供静态方法, 用于创建对应的线程池
+        Semaphore(信号量)
+            根据一些阈值做访问控制
+        Exchanger
+            线程之间传递数据的中间步骤
+        CyclicBarrier(关卡模式)
+            等所有线程到达后, 再往下走, 个人理解是削峰处理的取反
+        CountDownLatch
+            计数器
+
+
+
 
 10. 用过线程池吗,如果用过,请说明原理,并说说 newCache 和 newFixed 有什么区别,构造函数的各个参数的含义是什么,比如 coreSize,maxsize 等。
 
@@ -635,12 +657,192 @@ https://blog.csdn.net/qq_35661171/article/details/80181192
         newCachedThreadPool
             根据用户的任务数创建相应的线程来处理, 该线程池不会对线程数目加以限制, 完全依赖于JVM能创建线程数的数量, 可能引起内存不足
 
-
-
         coreSize 核心线程数
         maxSize  最大线程数
 
 
+11. 线程池的关闭方式有几种,各自的区别是什么。
+    Shutdown, shutdownNow, try Terminate, 清空工作队列, 终止线程池中各个线程, 销毁线程池
+
+12. 假如有一个第三方接口,有很多个线程去调用获取数据,现在规定每秒钟最多有 10 个线程同时调用它,如何做到。
+    ScheduledThreadPoolExecutor(10) 设置定时, 进行调度, 其中10为线程数
+
+        public ScheduledThreadPoolExecutor(int corePoolSize, ThreadFactory threadFactory) {
+            super(corePoolSize, Integer.MAX_VALUE, 0, TimeUnit.NANOSECONDS, new DelayedWorkQueue(), threadFactory);
+        }
+    它用的是DelayedWorkQueue, 是一个等待队列
+
+
+
+    https://blog.csdn.net/xieyuooo/article/details/8572543
+
+13. spring 的 controller 是单例还是多例，怎么保证并发的安全。
+    单例
+    通过工厂 DefaultSingletonBeanFactory实现单例
+    通过 AsyncTaskExecutor保持安全 ?
+    有问题?
+        Spring作为容器, 只负责创建对象, 给对象的属性赋值, MVC分发请求, 线程是否安全与容器关系不大
+        因为Controller是单例(默认单例除非用@Scope("prototype")指定), 如果不小心类中有成员变量, 那么这个变量是被所有请求共享的
+        如果加上@Scope("prototype")可以解决成员变量共享的问题, 因为每次都new, 但是效率降低了
+        其他办法: ThreadLocal, 将成员变量保存在线程的变量域中, 让不同请求隔离
+
+14. 用三个线程按顺序循环打印 abc 三个字母,比如 abcabcabc。
+    可利用AtomicInteger
+    https://mouselearnjava.iteye.com/blog/1949228
+
+
+15. ThreadLocal 用过么,用途是什么,原理是什么,用的时候要注意什么。
+    ThreadLocal底层是通过threadLocalMap进行存储键值,
+        每个ThreadLocal类创建一个Map, 然后用线程ID作为Map的Key, 实例对象作为Map的value, 以达到线程隔离的效果
+
+
+16. 如果让你实现一个并发安全的链表，你会怎么做。
+    Collections.synchronizedList() ConcurrentLinkedQueue
+
+    多线程环境下, 并发安全的链表实现方式有2种
+    1. 锁住整个表(性能差)
+    2. 使用交替锁(hand-over-hand locking), 只锁住表的一部分, 链表没有锁住的部分自由访问
+        实现原理: 将待插入位置两边节点加锁
+        1. 锁住链表的前2个节点
+        2. 如果这2个节点不是待插入位置, 解锁第一个节点, 锁住第三个节点
+        3. 如果这2个节点仍然不是待插入位置, 解锁第二个, 锁住第四个
+        4. 直到找到待插入的位置, 插入后, 解锁两边节点
+
+
+
+17. 有哪些无锁数据结构,他们实现的原理是什么。
+    LockFree, CAS
+    基于JDK提供的原子类原语实现, 例如AtomicReference
+
+18. 讲讲 java 同步机制的 wait 和 notify。
+    这2个方法只能在同步代码块中使用, wait会释放掉对象的锁, 等待noitfy唤醒
+
+19. 多线程如果线程挂住了怎么办。
+    根据具体情况（sleep,wait,join等），酌情选择notifyAll，notify进行线程唤醒。
+
+20. countdowlatch 和 cyclicbarrier 的内部原理和用法，以及相互之间的差别。
+    CountDownLatch是一个辅助类, 在完成一组正在其他线程中执行的操作之前, 他运行一个或者多个线程一直处于等待状态
+    CyclicBarrier要做的是, 让一组线程达到一个屏障, 直到最后一个线程达到屏障后, 屏障才会开门, 让所有的线程继续运行
+        CycliBarrier初始化的时候, 设置一个屏障数. 线程调用await()方法的时候, 线程就会阻塞, 调用await()线程数==初始设置的数字后
+        主线程会取消所有被阻塞的线程的状态
+
+    CountDownLatch是递减, 不可循环
+    CyclicBarrier是递增, 可循环用
+
+    https://blog.csdn.net/tolcf/article/details/50925145
+    https://www.jianshu.com/p/a101ae9797e3
+
+
+?21. 对 AbstractQueuedSynchronizer 了解多少,讲讲加锁和解锁的流程,独占锁和公平所加锁有什么不同。
+
+
+22. 使用 synchronized 修饰静态方法和非静态方法有什么区别。
+    对象锁 和 类锁
+
+23. 简述 ConcurrentLinkedQueue 和 LinkedBlockingQueue 的用处和不同之处。
+    LinkedBlockingQueue是一个基于单链表的, 任意范围的, FIFO阻塞队列
+    ConcurrentLinkedQueue是一个基于连接节点的无界线程安全队列, 它采用FIFO的规则对节点进行排序,
+        当我们添加一个元素的时候, 他会添加到队列的尾部, 当我们获取一个元素时, 它会返回队列头部元素
+        采用wait-free算法实现
+
+        wait-free & lock-free比较
+        https://blog.csdn.net/zhangxinrun/article/details/7103190
+
+24. 导致线程死锁的原因?怎么解除线程死锁。
+    线程间相互等待资源, 而又不释放资源, 导致无情无尽的等待.
+    死锁出现的条件:
+        1. 互斥条件: 一个资源每次只能被一个线程使用
+        2. 请求与保持条件: 一个进程因请求资源而阻塞时, 对获得的资源保持不放
+        3. 不剥夺条件:
+        4. 循环等待条件: 若干个进程之间形成一种头尾相接的循环等待资源关系
+        只要破坏4个中的1个, 死锁就能解决
+
+
+25. 非常多个线程(可能是不同机器),相互之间需要等待协调,才能完成某种工作,问怎么设计这种协调方案。
+    队列
+
+?26. 用过读写锁吗,原理是什么,一般在什么场景下用。
+    是一种自旋锁, 把访问对象分为读者,写者.
+
+?27. 开启多个线程,如果保证顺序执行,有哪几种实现方式,或者如何保证多个线程都执行完再拿到结果。
+
+?28. 延迟队列的实现方式,delayQueue 和时间轮算法的异同。
+
+
+### TCP 与 HTTP
+1. http1.0 和 http1.1 有什么区别。
+    HTTP 1.1加入了很多重要的性能优化：持久连接、分块编码传输、字节范围请求、增强的缓存机制、传输编码及请求管道。
+
+2. TCP 三次握手和四次挥手的流程,为什么断开连接要 4 次,如果握手只有两次,会出现什么。
+    第一次握手
+        SYN=1, seq=x
+        客户端发送一个TCP的SYN标志位置1的包, 指明客户打算连接服务器的端口, 以及初始序号X, 保存在包头序列号中
+        发送完毕后, 客户端进入SYN_SEND状态
+    第二次握手
+        SYN=1, ACK=1, seq=y, ACKnum=x+1
+        服务器返回确认包ACK,即SYN标志和ACK标志均为1. 服务器选择自己的ISN序号放到seq域里, 同时确认序号设置客户的ISN加1,即X+1
+        发送完毕后, 服务器端进入SYN_RCVD状态
+    第三次握手
+        ACK=1, ACKnum=y+1
+        客户端再次发送ACK包, SYN标志位为0, ACK标志位为1, 并把服务端发来的ACK序号字段+1
+        发送完毕后, 客户端进入established状态, 当服务端接收到这个包后, 也进入establish状态, TCP握手结束
+
+
+    第一次挥手
+        FIN=1, seq=x
+        客户端发送一个FIN标志位是1的包, 表示自己没有数据可已发送了, 但可以接收数据
+        发送完毕后, 客户端进入FIN_WAIT_1状态
+    第二次挥手
+        ACK=1, ACKnum=x+1
+        服务器确认客户端的FIN包, 发送一个包, 表示自己收到了客户端关闭连接的请求. 但还没准备好关闭.
+        发送完毕后, 服务器进入CLOSE_WAIT状态
+    第三次挥手
+        FIN=1, seq=y
+        服务器端准备好关闭连接时, 向客户端发送结束请求, FIN为1
+        发送完毕后, 客户端进入LAST_ACK状态, 等待服务端最后一个ACK
+    第四次挥手
+        ACK=1, ACKnum=y+1
+        客户端接收到服务端的关闭请求, 发送一个包确认, 并进入TIME_WAIT状态, 等待可能出现的要求重传ACK包
+        服务端收到关闭请求后, 关闭连接, 进入CLOSE状态
+        客户端等待了固定时间(2个最大生命周期), 没有收到服务端的ACK, 认为服务端已经正常关闭, 自己也进入CLOSE状态
+
+
+3. TIME_WAIT 和 CLOSE_WAIT 的区别。
+    CLOSE_WAIT 被动关闭
+    TIME_WAIT  主动关闭
+
+    TIME_WAIT用来重发可能丢失的ACK
+
+4. 说说你知道的几种 HTTP 响应码,比如 200, 302, 404。
+    200 ok 成功
+    404 page not found
+    302 重定向
+    500 服务端错误
+
+5. 当你用浏览器打开一个链接的时候，计算机做了哪些工作步骤。
+    DNS解析 -> 端口分析 -> tcp请求 -> 服务器处理请求 -> 服务器响应 -> 浏览器解析 -> 连接关闭
+
+6. TCP/IP 如何保证可靠性,说说 TCP 头的结构。
+
+7. 如何避免浏览器缓存。
+    HTTP头信息包含 cache-controll:no-cache 告诉浏览器不用缓存请求
+
+    经过https加密的请求
+    post请求
+
+8. 简述 Http 请求 get 和 post 的区别以及数据包格式。
+
+                        GET                 POST
+--------------------------------------------------------------------------------------------
+    后退刷新            无害                  数据会重新提交(浏览器也会告知用户, 数据会被重新提交)
+    书签               可收藏书签             不能被收藏
+    缓存               能被缓存               不能缓存
+    编码类型            applicaion/x-www-form-urlencoded    application/x-www-form-urlencode 或 mutipart/form-data
+    历史               参数保留在浏览器历史中    参数不会保留在浏览器历史中
+    对数据长度的限制    最大2048                无限制
+    对数据类型的限制    只允许ASCII码           无限制
+    安全性             安全性差,参数在URL中    比GET安全, 参数不会被保存在浏览器
+    可见性             数据在URL里可见         数据不在URL
 
 
 
