@@ -1,4 +1,5 @@
 https://blog.csdn.net/qq_35661171/article/details/80181192
+https://hk029.gitbooks.io/leetbook/twopoint.html
 
 
 ### JAVA基础
@@ -951,7 +952,11 @@ https://www.cnblogs.com/linguanh/p/8532641.html
     可遍历, 获取第N个前一个元素
 
 ?13. 200 个有序的数组,每个数组里面 100 个元素,找出 top20 的元素。
-    堆排序
+    大顶堆解法
+    从200个数组中各取出一个数, 并记录每个数的来源数组, 建立一个含20个元素的大根堆
+    此时堆顶就是最大的数, 取出堆顶元素, 并从堆顶元素的来源数组中取下一个数加入堆, 再取最大值, 一直这样进行100次
+    时间复杂度 100*log(200)
+    https://hk029.gitbooks.io/leetbook/%E5%88%86%E6%B2%BB/004.%20Median%20of%20Two%20Sorted%20Arrays[H]/004.%20Median%20of%20Two%20Sorted%20Arrays[H].html
 
 
 14. 单向链表, 查找中间的那个元素。
@@ -972,6 +977,22 @@ https://www.cnblogs.com/linguanh/p/8532641.html
 
 
 ### 数据库知识
+1. 数据库隔离级别有哪些，各自的含义是什么，MYSQL 默认的隔离级别是是什
+    1. 未提交读(Read Uncommited): 允许脏读, 也就是可能读取到其他会话中未提交事务修改的数据
+    2. 提交读(Read Commited): 只能读取到已经提交的数据. Oracle等数据库默认是这个级别
+    3. 可重复读取(Repeated Read): 可重复读, 在同一个事务内的查询都是事务开始时刻一致的, InnoDB默认级别.
+        在SQL标准中, 该隔离级别消除了不可重复读, 但还是存在幻读
+    4. 串行读(Serializable): 完全串行化的读, 每次读取都要获得表级别的共享锁, 读写相互阻塞
+    MySQL默认是 可重复读Repeated Read
+    
+    脏读
+        事务没有提交, 另一个事务能看到未提交的数据
+    不可重读
+        同一个事务, 对同一条数据, 前后2次读取的数据(注意事项数据)不一样, 原因,其他事务修改了数据
+        重点: 对数据的修改
+    幻读
+        同样的查询条件, 在同一个事务中多次查询, 返回的条数不一样. 原因其他事务插入/删除了数据 
+
 
 ### 消息队列
 ### Redis, Memcached
