@@ -1,6 +1,7 @@
 https://blog.csdn.net/qq_35661171/article/details/80181192
 https://hk029.gitbooks.io/leetbook/twopoint.html
 
+https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 
 ### JAVA基础
 
@@ -216,6 +217,7 @@ https://hk029.gitbooks.io/leetbook/twopoint.html
 23. error 和 exception 的区别,CheckedException,RuntimeException 的区别。
 
 24. 请列出 5 个运行时异常。
+
 25. 在自己的代码中,如果创建一个 java.lang.String 类,这个类是否可以被类加载器加载?为什么。
     不可以
     类加载的双亲委托模型
@@ -823,7 +825,7 @@ https://hk029.gitbooks.io/leetbook/twopoint.html
 5. 当你用浏览器打开一个链接的时候，计算机做了哪些工作步骤。
     DNS解析 -> 端口分析 -> tcp请求 -> 服务器处理请求 -> 服务器响应 -> 浏览器解析 -> 连接关闭
 
-6. TCP/IP 如何保证可靠性,说说 TCP 头的结构。
+?6. TCP/IP 如何保证可靠性,说说 TCP 头的结构。
 
 7. 如何避免浏览器缓存。
     HTTP头信息包含 cache-controll:no-cache 告诉浏览器不用缓存请求
@@ -862,6 +864,10 @@ https://hk029.gitbooks.io/leetbook/twopoint.html
 
 
 ### 架构设计与分布式
+
+32. Mybatis 的底层实现原理 
+    https://blog.csdn.net/qq_38182963/article/details/78824620
+
 
 
 ### 算法
@@ -997,3 +1003,25 @@ https://www.cnblogs.com/linguanh/p/8532641.html
 ### 消息队列
 ### Redis, Memcached
 ### 搜索
+
+
+
+
+
+
+
+### 统计
+技能          总数      未完成   
+---------------------------------------------------
+基础          32          6
+JVM知识       14          7
+开源框架      14          14
+操作系统      9           9
+多线程        28          6
+TCP           11          2
+架构设计      44          44
+算法          14          7
+数据库        19          18
+消息队列      9           9
+Redis         14          14
+搜索          3           3
