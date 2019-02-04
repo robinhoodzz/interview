@@ -503,6 +503,172 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 
 
 ### 开源框架知识
+?1. 简单讲讲 tomcat 结构，以及其类加载器流程，线程模型
+    Server服务器
+        Service服务(1:N|server:service)
+            Container(1:1|service:container)
+            Connector(1:N|container:connector)
+
+    Service服务
+        是对Container和Connector的包装和维护
+            其中有setContainer()方法和addConnector()方法, 说明Container和Connector是一对多关系
+        控制组件(Container和Connector的生命周期)
+        
+    Server服务器
+        提供接口让程序访问
+    
+    Connector组件(2大核心组件之一)
+        负责接受浏览器的tcp请求, 创建一个Request和Response对象
+        产生一个线程, 来处理这个请求, 并把Request和Response对象传给这个请求的线程
+        处理请求的线程是Container来做
+    
+    类加载: 与JVM不同, tomcat有自己一套加载机制,但基本满足双亲委派模型
+        Bootstrap加载器
+            加载JVM所需的类, 和jre/lib/ext下的类
+        System加载器
+            Tomcat启动的类, 如bootstrap.jar, 通常在catalina.sh中指定, 在CATALINA_HOME/bin下
+        Common通用加载器
+            加载Tomcat所需要的类, 在CATALINA_HOME/lib下, 如servlet-api.jar
+        Webapp应用加载器
+            在WEB-INF/lib 和 WEB-INF/classes下
+
+    https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/
+    http://www.cnblogs.com/xing901022/p/4574961.html
+    https://www.jianshu.com/p/62ec977996df
+
+?2. tomcat 如何调优，涉及哪些参数。
+    硬件, 操作系统, 版本, jdk, jvm参数, 配置connector的线程数量,开启gzip压缩, trimSpaces, 集群等
+    JVM参数如
+        export JAVA_OPTS="-server -Xms1400M -Xmx1400M -Xss512k -XX:+AggressiveOpts -XX:+UseBiasedLocking -XX:PermSize=128M -XX:MaxPermSize=256M -XX:+DisableExplicitGC -XX:MaxTenuringThreshold=31 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC  -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection -XX:LargePageSizeInBytes=128m  -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -Djava.awt.headless=true "
+        -server     默认Tomcat是用client启动, server意味着是在生产环境下运行
+        -Xmx -Xms   堆内存设置, Xmx为最大, 这两个设置为一样的值, 有助于减少JVM动态分配时所消耗的资源, 面对高并发时容易卡
+                    通过java -Xmx1610M -version 可以知道JVM最大能接受多少内存的分配
+        -Xmn        年轻代为512M, 因为整个堆=年轻代+老年代+持久代, 持久代是64M, 年轻代增大后, 将会减少老年代的大小, 年轻代为整个堆的3/8
+        -Xss        每个线程的堆大小, 一般不宜超过1M
+        -XX:PermSize    设置非堆内存, 默认是物理内存的1/64
+        -XX:MaxPermSize    设置最大非堆内存, 默认是物理内存的1/4
+        -XX:UseParNewGc    对年轻代使用并行回收, 效率高
+        
+        https://blog.csdn.net/lifetragedy/article/details/7708724
+        
+        
+?3. 讲讲 Spring 加载流程。
+    核心组件
+        Bean
+        Context
+        Core
+    Bean    Bean的定义,Bean的创建, Bean的解析
+    Context 标识一个应用的环境
+            利用BeanFactory创建Bean对象
+            保存对象关系映射
+            捕获各种事件
+    Core    对资源提供者进行同一封装
+    
+    IOC容器如何工作
+        构建BeanFactory, 以便生产Bean
+        注册事件
+        创建Bean实例对象
+
+    https://blog.csdn.net/qq_31582127/article/details/85228169
+
+        
+4. 讲讲 Spring 事务的传播属性。
+    7种
+    REQUIRED            如果当前存在事务,则加入该事务,否则创建一个新的事务
+    REQUIRES_NEW        创建新的事务,如果当前事务存在,则挂起当前事务
+    SUPPORTS            如果当前存在事务,则加入,否则以非事务方式运行
+    NOT_SUPPORTS        以非事务方式运行, 如果当前存在事务,则挂起当前事务
+    NEVER               以非事务方式运行, 如果当前存在事务, 则抛出异常
+    MANDATORY           如果当前存在事务,则加入该事务,否则抛出异常
+    NESTED              如果当前存在事务,则创建一个新的事务作为当前事务的嵌套事务来运行, 如果当前没有事务, 创建新的事务
+    
+
+            
+5. Spring 如何管理事务
+    3个接口
+    PlatformTransactionManager  事务管理器
+        事务管理, commit(), rollback(), getTransaction()
+    TransactionDefinition       事务定义信息
+        获取隔离级别 getIsolationLevel()
+        获取传播机制 getPropagationBehaivor()
+        
+    TransactionStatus           事务运行状态
+        是否有保存点  hasSavePoint()
+        是否完成      isComplete()
+        
+6. Spring 怎么配置事务（具体说出一些关键的 xml 元素
+    2种
+    1. 基于XML的事务配置
+    2. 基于注解的事务配置
+        事务通过AOP方式实现
+        
+7. 说说你对Spring的理解，非单例注入的原理？它的生命周期？循环注入的原理，aop的实现原理，说说aop中的几个术语，它们是怎么相互工作的。
+    IOC
+    AOP
+    
+    非单例注入原理
+        大部分情况下,bean都是singleton的.
+   
+
+    
+            
+8. Springmvc 中 DispatcherServlet 初始化过程。
+    
+9. netty 的线程模型 netty 的线程模型 netty 如何基于 reactor 模型上实现的
+
+    http://www.sohu.com/a/272879207_463994
+    https://blog.csdn.net/bjweimengshu/article/details/78786315
+    https://blog.csdn.net/baiye_xing/article/details/76735113
+    https://www.w3cschool.cn/essential_netty_in_action/essential_netty_in_action-2gtp289u.html
+    
+    ** https://www.jianshu.com/p/a4e03835921a
+
+    epoll
+    https://blog.csdn.net/tom555cat/article/details/24870469
+    https://www.jianshu.com/p/41dc33b97419
+    
+    Netty架构组件
+        Bootstrap ServerBootstrap
+        Channel
+        ChannelHandler
+        ChannelPipline
+        EventLoop
+        ChannelFuture
+    
+        BootStrap       netty的引导类, 提供应用网络层配置的容器
+        Channel         底层网络传输API
+        ChannelHandler  数据处理的容器, 基于事件模型, 业务常用的是ChannelInboundHandler
+        ChannelPipline  
+        EventLoop       用于处理Channel的IO操作
+        
+
+10. netty 的 hashwheeltimer 的用法，实现原理，是否出现过调用不够准时，怎么解决。
+    https://segmentfault.com/a/1190000010987765
+    https://www.cnblogs.com/zemliu/p/3928285.html
+    https://www.cnblogs.com/eryuan/p/7955677.html
+
+11. netty 的心跳处理在弱网下怎么办。
+    思路:
+        一旦发生故障/超时, 立即关闭链路, 主动重连
+        1. 当网络处于空闲状态, 持续时间达到T(一个周期), 客户端主动发送ping心跳消息给服务端
+        2. 如果T+1(下一个周期), 客户端没有收到对方发送的pong心跳应答消息或者其他业务读写, 则心跳失败计数器+1
+        3. 每当客户端接收到服务的业务消息或者pong应答消息时, 将心跳计数器清零. 连续N次没有收到pong消息后, 关闭链路, 间隔INTERVAL时间后发起重连
+        
+        4. 服务端, 空闲状态持续时间达到T后, 服务端心跳失败计数器+1, 只要收到客户端的ping消息或者其他业务消息, 计数器清零
+        5. 服务端连续N次没有收到客户端的ping消息或者其他业务消息, 则关闭链路, 释放资源, 等待客户端重连
+        通过ping-pong双向心跳机制, 可以保证无论通信那一方出现网络故障, 都能及时的检测出来. 为了防止误判, 只有连续N次心跳检测失败, 才认定链路异常, 需要关闭重连
+        读或写心跳消息发生I/O异常时, 说明链路已经中断. 此时需要立即关闭链路, 
+            客户端: 需要重新发起链接
+            服务端: 需要清空缓冲区的半包信息, 等待客户端重连
+
+12. netty 的通讯协议是什么样的。
+
+13. springmvc 用到的注解，作用是什么，原理。
+
+14. springboot 启动机制
+        
+            
+            
 
     
 ### 操作系统
