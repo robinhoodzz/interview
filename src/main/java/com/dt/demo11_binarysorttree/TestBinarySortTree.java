@@ -25,5 +25,7 @@ public class TestBinarySortTree {
 
         tree.delete(1);
         tree.midShow();
+        System.out.println();
+        tree.floorShow();
     }
 }

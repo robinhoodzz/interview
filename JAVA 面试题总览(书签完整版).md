@@ -11,14 +11,14 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
     1 KB = 1024 Byte     K
     1 MB = 1024 KB       M
 
-    int     32bit   4Byte
-    short   16bit
-    long    64bit
-    byte    8bit
-    char    16bit
-    float   32bit
-    double  64bit
     boolean 1bit
+    byte    8bit
+    short   16bit
+    char    16bit
+    int     32bit   4Byte
+    float   32bit
+    long    64bit
+    double  64bit
 
 2.String 类能被继承吗,为什么。
     不能, 因为final修饰符, 修饰了String类, 表示其可不以被继承
@@ -83,7 +83,7 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
         意思是如果valueOffSet位置包含的值与expect值相同, 则更新valueOffSet位置的值为update, 并返回true, 否则返回false.
 
     CAS原理
-        底层C和汇编 先判断是否多核, 如果多核加锁, 锁的是总线, 使得其他CPU内核无法通过总线访问内存
+        底层C和汇编 先判断是否多核, 如果多核加锁, 锁的是总线, 使得其他CPU内核无法通过总线访问内存(op::isMulitCore)
         后续, 优化为: 锁CPU缓存以锁定对应的内存地址映射, 但静态程度很高或缓存与内存地址未对其时, 还是会锁总线
 
     CAS缺点
@@ -121,6 +121,8 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 
 ?11. IO 模型有哪些,讲讲你理解的 nio,他和 bio 的区别是啥,谈谈 reactor 模型
     IO是面向流的, NIO是面向缓冲区的
+    
+    https://www.cnblogs.com/doit8791/p/7461479.html
 
 ?12. 反射的原理,反射创建类实例的三种方式是什么。
 
@@ -156,7 +158,7 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 
     Spring的选择
     当Bean实现接口时, Spring就会用JDK动态代理
-    当Bean没有实现接口是, Spring使用CGlib代理
+    当Bean没有实现接口时, Spring使用CGlib代理
 
     CGlib实现的动态代理, 底层采用ASM字节码生成框架, 使用字节码技术生成代理类, 比使用java反射效率高, 但不能对声明为final的方法进行代理, 因为Cglib原理是动态生成被代理类的子类
     JDK动态代理性能比cglib要好20%左右
@@ -231,7 +233,7 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
     http://www.cnblogs.com/jasonstorm/p/5663864.html
 
 26. 说一说你对 java.lang.Object 对象中 hashCode 和 equals 方法的理解。在什么场景 下需要重新实现这两个方法。
-    如果 两个对象 equals 为true, ashCode必须相等
+    如果 两个对象 equals 为true, hashCode必须相等
     对象需要在在集合里操作的时候, 需要重写
 
 27. 在 jdk1.5 中,引入了泛型,泛型的存在是用来解决什么问题。
@@ -749,28 +751,22 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 
 ?7. synchronized 的原理是什么,一般用在什么地方(比如加在静态方法和非静态方法的区别,
         静态方法和非静态方法同时执行的时候会有影响吗)解释以下名词:重排序,自旋锁,偏向锁,轻量级锁,可重入锁,公平锁,非公平锁,乐观锁,悲观锁。
-
     synchronized 的原理
-
         反编译后
         3: monitorenter (重点)
         4: getstatic
         5: ldc
         6: monitorexit (重点)
-
         monitorenter:
         每个对象有一个监视器锁. 当monitor被占用时就会处于锁定状态, 线程执行monitorenter指令时会尝试获取monitor的所有权, 过程如下:
         1. 如果monitor的进入数为0, 则该线程进入monitor, 然后将进入设置数设置为1. 该线程为monitor的所有者
         2. 如果线程已经占有该monitor, 只是重新进入, 则进入monitor的进入数加1.
         3. 如果其他线程已经占有该monitor,则该线程进入阻塞状态, 直到monitor的进入数为0, 才能再次获取monitor的所有权
-
         monitorexit:
         执行monitorexit的线程必须是monitor的所有者
         执行指令时, monitor的进入数减1, 如果减1后进入数为0, 那线程退出monitor, 不再是这个monitor的所有者
-
         所以 Synchronized关键字的原理是: 通过一个monitor的对象来完成, wait/notify等方法也是依赖于monitor对象,
             这就是为什么只有在synchronized方法或代码块中才能调用wait/notify方法, 否则抛出IllegalMonitorStateException异常
-
     ?自旋锁
         当一个线程在获取锁时, 如果锁被其他线程持有, 那么该线程就会循环判断是否成功获取锁, 直到成功获取锁后, 退出循环
         https://blog.csdn.net/qq_34337272/article/details/81252853
@@ -798,8 +794,6 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
         Exchanger
         CyclicBarrier
         CountDownLatch
-
-
         Executors
             工具类, 提供静态方法, 用于创建对应的线程池
         Semaphore(信号量)
@@ -858,6 +852,8 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 14. 用三个线程按顺序循环打印 abc 三个字母,比如 abcabcabc。
     可利用AtomicInteger
     https://mouselearnjava.iteye.com/blog/1949228
+    信号量
+    https://blog.csdn.net/hanchao5272/article/details/79780045
 
 
 15. ThreadLocal 用过么,用途是什么,原理是什么,用的时候要注意什么。
@@ -956,7 +952,6 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
         客户端再次发送ACK包, SYN标志位为0, ACK标志位为1, 并把服务端发来的ACK序号字段+1
         发送完毕后, 客户端进入established状态, 当服务端接收到这个包后, 也进入establish状态, TCP握手结束
 
-
     第一次挥手
         FIN=1, seq=x
         客户端发送一个FIN标志位是1的包, 表示自己没有数据可已发送了, 但可以接收数据
@@ -1036,6 +1031,49 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
     
 
 2. 用 java 自己实现一个 LRU。
+    定义2个类
+        LRUCached 主类
+            HashMap
+            capacity
+            head
+            tail
+        LRUNode   节点
+            key
+            value
+            next
+            prev
+        主类方法
+            set
+                IF 从HashMap获取的Node不为空
+                    removeNode(因为最终执行setHead方法)
+                ELSE(为空的情况)
+                    IF 超过capacity
+                        remote tail
+                    HashMap put这个K V
+                最终 setHead()
+            get
+                IF HashMap获取不为空
+                    remove 这个node
+                    setHead 这个node
+                    返回 这个node的值
+                返回 NULL(也就是HashMap获取为空)
+            setHead
+                IF head是空
+                    当前node的next 为 head
+                    head的prev为 当前node
+            remove
+                IF 当前node的prev不等于NULL
+                    node的prev的next 为 node的prev
+                IF 当前node的next 不等于NULL
+                    node的next的prev 为node的prev
+                删除HashMap中的key
+                
+            LRUCached(int)构造
+                给capacity 赋值
+
+    LRU类定义成员变量 HashMap
+    LRU类定义成员变量 长度
+    
 
     https://www.cnblogs.com/nicky-160330/archive/2018/08/18/9498481.html
 
@@ -1108,6 +1146,7 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 8. 什么是一致性 hash。
 9. 什么是 restful，讲讲你理解的 restful。
 10. 如何设计建立和保持 100w 的长连接。
+
 11. 如何防止缓存击穿和雪崩
     缓存雪崩可能是因为数据未加载到缓存中, 或者缓存同一时间大面积失效, 从而导致所有请求都去数据库查询, 导致数据库CPU和内存负载过高,甚至宕机
     解决思路
@@ -1141,9 +1180,8 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
         长度        128     160
         常数        64      4
         运算步骤数  64      80
-        
-    
-    
+
+
 14. 什么是 paxos 算法，什么是 zab 协议。
 
     分布式系统的选举过程中, 让不同的选民 最终做出一致的决定
@@ -1157,6 +1195,7 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
     2. 编号贿赂金额很重要,无论哪个阶段,编号(贿赂钱少的)被鄙视(拒绝)
     3. 第一阶段中,"接受者"接受了之前提议者的提议, 他后来成为"提议者",也会提出之前接受的提议
         如果他之前没有接受过任何提议, 那贿选胜出的他, 可以提自己的意见
+
 
 14. ZAB协议
     ZooKeeper Atomic Broadcast
@@ -1182,6 +1221,7 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
     单例, 代理, 装饰
 
 18. Dubbo 的原理，有看过源码么，数据怎么流转的，怎么实现集群，负载均衡，服务注册和发现，重试转发，快速失败的策略是怎样的。
+
 19. 一次 RPC 请求的流程是什么
     1.客户端/消费者 以本地调用方式 调用服务
     2.client stub接受到调用后, 负责将方法,参数,等组装成能够进行网络传输的消息体
@@ -1194,9 +1234,7 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
     9.服务消费方得到最终结果
     
 20. 自己实现过 rpc 么，原理可以简单讲讲。Rpc 要解决什么问题。
-    
 21. 异步模式的用途和意义。
-    
 22. 缓存数据过期后的更新如何设计。
     
 23. 编程中自己都怎么考虑一些设计原则的，比如开闭原则，以及在工作中的应用。
@@ -1221,7 +1259,27 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 28. 如何设计一套高并发支付方案，架构如何设计。
 29. 如何实现负载均衡，有哪些算法可以实现。
 30. Zookeeper 的用途，选举的原理是什么。
+    定义: 分布式的协调服务, 集群管理者
+    功能: 订阅/发布, 负载均衡, 服务命名, 分布式锁等等
+    用途: 注册中心
+    
+    文件系统: Znode 文件节点可以存储数据,不超过1M, 只有节点可以,文件夹不行
+    协议: ZAB协议->Zk原子广播: 崩溃恢复模式(zk崩溃:存活不过半, 恢复后退出这个模式), 消息广播(处理客户端请求)
+    4种数据节点: 持久,临时,持久有序,临时有序
+    watch机制: 只通知一次
+        事件: 
+            客户端注册watcher
+            服务端处理watcher
+            客户端回调watcher
+            
+            
+    
+    https://blog.csdn.net/qq_29842085/article/details/79443128
+    https://www.cnblogs.com/lanqiu5ge/p/9405601.html
+    https://segmentfault.com/a/1190000014479433
+    https://segmentfault.com/a/1190000014479433
 31. Zookeeper watch 机制原理。
+
 
 32. Mybatis 的底层实现原理 
     https://blog.csdn.net/qq_38182963/article/details/78824620
@@ -1458,7 +1516,7 @@ https://www.cnblogs.com/linguanh/p/8532641.html
     5. 尽量扩展索引, 如表中已经有a的索引, 现在要加(a, b)的索引, 那么只需要修改以前的索引即可
 
 8. 聚集索引和非聚集索引的区别。
-    聚簇索引    索引和记录紧密在一起
+    聚簇索引    索引和记录紧密在一起(如innodb, 数据库表行中数据的物理顺序与键值的逻辑顺序相同)
     非聚簇索引  索引文件和数据文件分开存放, 索引文件的叶子页只保存了主键值, 要定位记录还要去查找响应的数据块
 
 9. 数据库中B TREE和B+ TREE区别
@@ -1575,7 +1633,123 @@ https://www.cnblogs.com/linguanh/p/8532641.html
 
 
 ### 消息队列
+
 ### Redis, Memcached
+1. redis 的 list 结构相关的操作。
+    LPUSH(X)    在队列头部插入一个或多个元素, X(Exist)是队列存在时添加,否则不添加
+    RPUSH(X)    在队列尾部插入一个或多个元素, X(Exist)是队列存在时添加,否则不添加
+    LPOP        移除头部一个元素
+    RPOP        移除尾部一个元素
+    BLPOP       B(block)阻塞, 移除头部元素, 如果没有元素则阻塞直到有元素可弹出为止
+    BRPOP       B(block)阻塞, 移除尾部元素, 如果没有元素则阻塞直到有元素可弹出为止
+    LLEN        获取长度
+    LRANGE      根据区间获取元素, LRANGE mylist 0 10, 获取0-10的元素
+    
+2. Redis 的数据结构都有哪些。
+    字符串(String)     存储整数(计数器)和字符串(可以是序列化的二进制,也可是json,可以是纯字符串)
+    列表(List)         可作为队列,栈使用. 存储有序数据, 可以重复
+    哈希表(Hashes)     根据Key, Value存储, 分布式的HashMap
+    集合(Sets)         无需, 唯一
+    有序集合(Sorted Set) 有序, 有分数, 可根据分数排序
+
+3. Redis 的使用要注意什么，讲讲持久化方式，内存设置，集群的应用和优劣势等。
+    持久化方式
+        RDB
+            时间快照, dump全部数据存储在dump.rdb文件里
+            时间间隔相对长, dump花费时间长, 宕机时数据丢失多,但恢复时快
+        AOF
+            记录服务器执行的命令
+            时间间隔相对短, dump花费时间短, 宕机时数据丢失少,恢复慢(因为要一条一条执行)
+            
+    内存设置
+        maxmemory
+        used_memory
+        虚拟内存: vm-enabled yes
+     
+    集群
+        客户端分区
+            Cluster    3.0版本以上
+            客户端分区 自己控制逻辑, 自己控制高可用, 故障转移等
+            代理方案   客户端维护方便, 服务端复杂
+
+    LRU 
+        近期最少使用方法
+    TTL
+       超时算法 
+    
+4. redis2 和 redis3 的区别，redis3 内部通讯机制。
+    集群方式的区别, 3采用Cluster, 2采用客户端分区和代理方案
+    1. 集群中的每个节点都会单独开辟一个TCP通道, 用于节点之间通信, 通信端口号在基础上加10000
+    2. 每个节点在固定周期通过特定规则发送ping消息
+    3. 接收到ping消息后, 用pong消息作为回应
+
+
+5. 当前 redis 集群有哪些玩法，各自优缺点，场景。
+6. Memcache 的原理，哪些数据适合放在缓存中。
+7. redis 和 memcached 的内存管理的区别。
+8. Redis 的并发竞争问题如何解决，了解 Redis 事务的 CAS 操作吗。
+    redis为单进程单线程模式, 采用队列模式将并发访问变为串行访问
+    redis本身没有锁概念.
+    事务操作(不具有原子性, 只是批量操作)
+        MULTI   事务开启
+        EXEC    事务执行(不同于提交, 只是批量执行而已)
+        DISCARD 取消事务
+        WATCH   监视某个值, 如果值发送变更, 事务会取消
+
+        >MULIT
+        ok
+        >INCR foo
+        QUEUED
+        >EXEC
+        1) (integer) 1
+        
+    CAS 不是 Compare and Swap概念, 而是 Check and Set
+    1. 不用watch
+        ClientA         ClientB
+        get sc(10)      
+                        get sc(10)
+        tmp=sc+1(11)    tmp=sc+1(11)
+                        set sc=tmp(11)
+        set sc=tmp(11)
+        final(11)       final(11)
+    2. 使用watch
+            ClientA         ClientB
+            watch sc
+            get sc(10)      
+                            get sc(10)
+            tmp=sc+1(11)    tmp=sc+1(11)
+            标记sc被修改    set sc=tmp(11)
+            set sc=tmp(11)失败
+            final(11)       final(11)
+            get sc(11)
+            tmp=sc+1(12)
+            set sc=tmp(12)
+            final(12)
+    
+9. Redis 的选举算法和流程是怎样的。
+    redis没有使用一致性Hash, 而是引入了哈希槽slot的概念,redis集群总计有16384个槽, 每个key通过CRC16校验后对16384取模, 决定放在哪个槽
+    
+10. redis 的持久化的机制，aof 和 rdb 的区别。
+    上面 *2
+
+11. redis 的集群怎么同步的数据的。
+    全同步和部分同步
+    
+    全同步, 在slave刚启动的时候
+        1. Slave向Master发送同步指令SYNC, Master接收到消息后, 调用syncCommand()方法进行同步处理
+        2. 方法中, 会启动一个备份进程用于同步, 如果有一个进程在做同步操作, 则不会在开启新的
+        3. 备份进程将redis数据保存为rdb文件
+        4. redis的Corn, 会对备份后的数据进行处理, 如果备份完毕, 调用hanlder完成后续处理
+        5. Handler会更新master状态(成功失败,时间等), 将备份的rdb数据发送给slave
+    部分同步
+        1. Master接收到客户端的指令后, 更新数据, 并记录到aof文件中
+        2. master获取所有slave列表, 并扩散到slave中
+        3. 将slave切换为本次操作的数据库, 并
+
+12. 知道哪些 redis 的优化操作。
+13. Reids 的主从复制机制原理。
+14. Redis 的线程模型是什么
+
 ### 搜索
 
 
@@ -1593,9 +1767,9 @@ https://www.cnblogs.com/linguanh/p/8532641.html
 4       操作系统      9           9
 5       多线程        28          6
 6       TCP           11          2
-7       架构设计      44          44
+7       架构设计      44          20
 8       算法          14          7
 9       数据库        19          2
 10      消息队列      9           9
-11      Redis         14          14
+11      Redis         14          6
 12      搜索          3           3

@@ -1,5 +1,8 @@
 package com.dt.demo11_binarysorttree;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
  * 二叉排序树
  *
@@ -37,6 +40,23 @@ public class BinarySortTree {
     public void midShow() {
         if (root == null) return;
         root.midShow();
+    }
+
+
+    /**
+     * 层级遍历
+     */
+    public void floorShow() {
+        Queue<Node> queue = new LinkedList<>();
+        queue.offer(root);
+        while (!queue.isEmpty()) {
+            Node node = queue.poll();
+            System.out.print(node.value + ",");
+            if(node.left!=null)
+                queue.offer(node.left);
+            if(node.right!=null)
+                queue.offer(node.right);
+        }
     }
 
     /**
