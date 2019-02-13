@@ -31,8 +31,6 @@ public class HeadSort {
      * @param arr 调整好的大顶堆
      */
     public static void headSort(int[] arr) {
-        // 开始位置是最后一个非叶子节点, 即最后一个节点的父节点
-        int start = (arr.length - 1) / 2;
 
         // 先把数组中第一个和最后一个交换位置, 再把前面的处理为大顶堆
         for (int i = arr.length - 1; i > 0; i--) {

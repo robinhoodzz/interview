@@ -86,6 +86,7 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
     CAS原理
         底层C和汇编 先判断是否多核, 如果多核加锁, 锁的是总线, 使得其他CPU内核无法通过总线访问内存(op::isMulitCore)
         后续, 优化为: 锁CPU缓存以锁定对应的内存地址映射, 但静态程度很高或缓存与内存地址未对其时, 还是会锁总线
+        CPU的时间段执行其实是队列, 时间序列
 
     CAS缺点
         1. 循环时间开销很大
@@ -122,8 +123,17 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 
 ?11. IO 模型有哪些,讲讲你理解的 nio,他和 bio 的区别是啥,谈谈 reactor 模型
     IO是面向流的, NIO是面向缓冲区的
-    
     https://www.cnblogs.com/doit8791/p/7461479.html
+    reactor自己理解:
+        模型发展历程
+        1. Socket与ServerSocket单点处理
+        2. ServerSocket.accept()后, 新建线程处理业务逻辑
+        3. ServerSocket.accept()后, 使用线程池处理业务逻辑(伪多路IO复用), IO仍然阻塞
+        4. JDK的NIO模型, 面向缓冲, 缓冲区可以读也可以写(buffer的三个指针控制读模式,写模式), IO非阻塞
+        5. Netty的EventLoop模型, 一个线程监听读事件的同时, 也负责分配线程用于业务处理, 最后也负责收集写到缓冲的数据
+        6. Netty的Reactor模型, 一个线程boss监听读事件, 监听到事件后, 注册到selector(IO多路复用器上), 另一个线程(worker)负责分配业务处理的线程
+            业务处理线程负责 解码->计算->编码的过程, worker负责写到缓冲, 并最终写到客户端
+    
 
 ?12. 反射的原理,反射创建类实例的三种方式是什么。
 
@@ -236,6 +246,15 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
 26. 说一说你对 java.lang.Object 对象中 hashCode 和 equals 方法的理解。在什么场景 下需要重新实现这两个方法。
     如果 两个对象 equals 为true, hashCode必须相等
     对象需要在在集合里操作的时候, 需要重写
+    
+    Person p1 = new Person("张三", 18);
+    Person p2 = new Person("张三", 22);
+    Set<Persion> set = new HashSet<>();
+    set.add(p1);
+    set.add(p2);
+    // 此时set.size() 为 2
+    // 重写后 set.size() 为 1
+    
 
 27. 在 jdk1.5 中,引入了泛型,泛型的存在是用来解决什么问题。
     泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数，泛型的好处是在编译的时候检查类型安全，并且所有的强制转换都是自动和隐式的，以提高代码的重用率
@@ -688,7 +707,7 @@ https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
     不算线程池的话, 3种
     1. 实现 Runnalbe接口
     2. 继承 Thread类
-    3. 实现 Callable接口
+    3. 实现 Callable接口(其实不算, 因为是用线程池方式实现)
 
     进程 & 线程区别
         进程: 独立的运行环境, 被看做是一个程序和应用
