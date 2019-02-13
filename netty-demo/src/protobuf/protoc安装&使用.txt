@@ -1,0 +1,12 @@
+https://github.com/protocolbuffers/protobuf/releases
+下载
+    protoc-3.7.0-rc-2-osx-x86_64.zip
+    或者
+    protoc-3.7.0-rc-2-win64.zip
+
+
+使用
+    1. 先把protoc加到环境变量里去
+    2. 进入netty-demo项目
+    3. 修改 .proto里面 java_package里的包路径
+    4. protoc --java_out=src/main/java src/main/protobuf/Student.proto
