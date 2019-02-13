@@ -14,19 +14,17 @@ import io.netty.handler.logging.LoggingHandler;
 public class TestServive {
 
     public static void main(String[] args) throws Exception {
-
         EventLoopGroup boss = new NioEventLoopGroup();
         EventLoopGroup worker = new NioEventLoopGroup();
 
-
-        ServerBootstrap serverBootstrap = new ServerBootstrap();
-        serverBootstrap
-                .group(boss, worker)
-                .channel(NioServerSocketChannel.class)
-                .handler(new LoggingHandler(LogLevel.INFO)) // handler是针对boss来作用的
-                .childHandler(new TestServerInitializer()); // childHandler是针对worker来作用的
-
         try {
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            serverBootstrap
+                    .group(boss, worker)
+                    .channel(NioServerSocketChannel.class)
+                    .handler(new LoggingHandler(LogLevel.INFO)) // handler是针对boss来作用的
+                    .childHandler(new TestServerInitializer()); // childHandler是针对worker来作用的
+
             ChannelFuture channelFuture = serverBootstrap.bind(8899).sync();
             channelFuture.channel().closeFuture().sync();
         } catch (InterruptedException e) {
