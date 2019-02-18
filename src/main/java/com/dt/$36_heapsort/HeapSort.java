@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Created by robin on 19/1/30.
  */
-public class HeadSort {
+public class HeapSort {
 
 
     public static void main(String[] args) {
@@ -20,8 +20,54 @@ public class HeadSort {
         System.out.println(Arrays.toString(arr));
 
 
-        headSort(arr);
+        heapSort(arr);
         System.out.println(Arrays.toString(arr));
+
+
+        int[] b = new int[]{4, 10, 3, 5, 1};
+        heapSort2(b, b.length);
+        System.out.println(Arrays.toString(b));
+
+
+    }
+
+    private static void heapSort2(int[] arr, int n) {
+        for (int i = n/2-1; i>=0; i--) {
+            heapify(arr, n, i);
+//            maxHeap(arr, n, i);
+
+        }
+        for (int i = n-1; i >=0; i--) {
+//            swap(arr[0], arr[i]);
+            int tmp = arr[0];
+            arr[0] = arr[i];
+            arr[i] = tmp;
+            heapify(arr, i, 0);
+//            maxHeap(arr, i, 0);
+        }
+    }
+
+    private static void heapify(int[] arr, int n, int i) {
+
+        int leftIndex = 2 * i;
+        int rightIndex = 2 * i + 1;
+
+        int max = i;
+
+        if (leftIndex < n && arr[leftIndex] > arr[i]) {
+            max = leftIndex;
+        }
+        if (rightIndex < n && arr[rightIndex] > arr[i]) {
+            max = rightIndex;
+        }
+
+        if (max > i) {
+            int tmp = arr[i];
+            arr[i] = arr[max];
+            arr[max] = tmp;
+            heapify(arr, n, max);
+        }
+
     }
 
 
@@ -30,7 +76,7 @@ public class HeadSort {
      *
      * @param arr 调整好的大顶堆
      */
-    public static void headSort(int[] arr) {
+    public static void heapSort(int[] arr) {
 
         // 先把数组中第一个和最后一个交换位置, 再把前面的处理为大顶堆
         for (int i = arr.length - 1; i > 0; i--) {

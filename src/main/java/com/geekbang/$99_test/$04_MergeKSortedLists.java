@@ -1,7 +1,5 @@
 package com.geekbang.$99_test;
 
-import java.util.Arrays;
-
 /**
  * Created by Administrator on 2019/2/8.
  */
@@ -34,7 +32,7 @@ public class $04_MergeKSortedLists {
     public static ListNode mergeKLists(ListNode[] lists) {
         if (lists.length == 0) return null;
         if (lists.length == 1) return lists[0];
-
+        // fixme
 
 
 

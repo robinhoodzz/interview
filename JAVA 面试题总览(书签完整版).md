@@ -13,13 +13,13 @@
     1 MB = 1024 KB       M
 
     boolean 1bit
-    byte    8bit
-    short   16bit
-    char    16bit
+    byte    8bit    1Byte
+    short   16bit   2Byte
+    char    16bit   2Byte
     int     32bit   4Byte
-    float   32bit
-    long    64bit
-    double  64bit
+    float   32bit   4Byte
+    long    64bit   8Byte
+    double  64bit   8Byte
 
 2.String 类能被继承吗,为什么。
     不能, 因为final修饰符, 修饰了String类, 表示其可不以被继承
