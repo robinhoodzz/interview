@@ -2,6 +2,12 @@
 算法      https://hk029.gitbooks.io/leetbook/twopoint.html
 并发编程   http://cmsblogs.com/?p=2071
 心得      https://mp.weixin.qq.com/s/-O_aBOj1E3p1X2jwlB9lHA
+
+NIO
+做个LRU
+查询面经
+简单介绍项目
+
 ---
 
 ### JAVA基础
@@ -129,11 +135,99 @@
         1. Socket与ServerSocket单点处理
         2. ServerSocket.accept()后, 新建线程处理业务逻辑
         3. ServerSocket.accept()后, 使用线程池处理业务逻辑(伪多路IO复用), IO仍然阻塞
-        4. JDK的NIO模型, 面向缓冲, 缓冲区可以读也可以写(buffer的三个指针控制读模式,写模式), IO非阻塞
+        4. JDK的NIO模型, 面向缓冲, 缓冲区可以读也可以写(buffer的三个指针控制读模式,写模式 capacity是buffer容量, position是当前指针, limit是读写标志位), IO非阻塞
         5. Netty的EventLoop模型, 一个线程监听读事件的同时, 也负责分配线程用于业务处理, 最后也负责收集写到缓冲的数据
         6. Netty的Reactor模型, 一个线程boss监听读事件, 监听到事件后, 注册到selector(IO多路复用器上), 另一个线程(worker)负责分配业务处理的线程
             业务处理线程负责 解码->计算->编码的过程, worker负责写到缓冲, 并最终写到客户端
     
+---
+
+    java中流Stream, 一个流要么输入, 要么输出流
+    NIO中三个核心概念:
+        Selector
+        Channel
+        Buffer(ByteBuffer)
+
+        面向块block, 面向缓冲区buffer编程
+        buffer本身是个内存, 数组实现, 读写都是通过buffer实现的
+
+
+
+    张龙:
+
+    原始网络IO的问题
+    1. 每一个socket都会让服务器端对应一个线程, 服务器端的线程数量是有限的
+    2. 线程之间在进行上下文切换的时候是有开销的, 线程越多, 开销/成本越大
+    3. socket作为端点, 建立连接后, 并不是所有时间都有数据传递, socket要保持, 服务器的线程却要保持, 浪费服务器端资源
+
+    Reactor有5种角色构成
+    1. handle(句柄win/描述符Linux):
+        表示资源, 是由操作系统来提供的, 用于表示一个个的事件, 如网络变成中的socket描述符,
+        事件既可以来自于外部, 也可以来自于内部
+        外部: 客户端连接请求, 客户端发送数据
+        内部: 操作系统定时器事件
+        handle是事件产生的发源地
+
+    2. Synchronized Event Demutiplexer(同步事件分离器):
+        同步的就有可能产生阻塞的情况
+        它本身是一个系统调用, 用于等待事件的发生(一个或多个)
+        调用方调用它的时候会阻塞, 一直阻塞到 同步事件分离器上有事件产生为止, 方法才能返回
+        对于Linux来说, 同步事件分离器指的就是I/O多路复用器, 如selector, poll, epoll等
+        对应于JAVA的NIO来说, 就是selector, 对应的阻塞方法是 select()方法.
+
+    3. Event Handler事件处理器:
+        本身由多个回调方法构成, 这些回调方法构成了与应用相关的某个事件的反馈机制
+        对于JAVA的NIO来说, 没有对应的, 对于Netty来说, 在事件处理器上进行了一个升级和封装
+
+    4. Concrete Event Handler具体事件处理器:
+        继承了 Event Handler事件处理器的
+        实现了 事件处理器 所提供的回调方法
+        他本质上就是我们所编写的一个个的处理器实现
+        在Netty中对应的是我们 自己实现的Handler(继承自SimpleChannelInboundHandler)
+            其中channelRead0是被谁调用的呢?
+                I/O线程, workerGroup(也就是subReactor, 可以被看做是一种I/O线程池, 如果channelread0()方法执行时间长, 则是阻塞的, 可以根据需要,自定义业务线程池来做异步处理)
+
+
+    5. Initiation Dispatcher(初始分发器):
+        就是mainReactor 和 subReactor角色
+        作用: 定义了️一些规范, 用于控制时间调度的方式, 同时又提供了应用进行事件处理器的注册,删除等设施. 他是整个事件处理器的核心所在
+        主要有3个方法: handle_events处理事件, register_events(h)注册事件, remove_events(h)删除事件
+        初始分发器 会 通过同步事件分离器, 来等待事件的发生,
+        一旦时间发生, 初始分发器首先会分离出每一个事件, 然后调用事件处理器, 最后调用相关的回调方法来处理这些事件
+            遍历set<SelectionKey>集合, 取出来每一个SelectionKey(就是每一个事件), 调用事件处理器, 再回调相关方法
+
+    整个过程有点像 观察者模式
+        一个主题对象和多个观察者对象, 观察者对象针对感兴趣的主题注册到主题对象, 当数据或事件发生变化的时候, 主题对象会遍历观察者列表, 取出每一个观察者, 回调之
+
+---
+    reactor模型流程
+
+    1. 当应用向Initiation Dispathcher注册具体的事件处理器时,
+        应用会标识出该事件处理器希望Initiation Dispathcher在某个事件发生向其通知的该事件, 该事件与handle关联
+
+    2. Initiation Dispatcher会要求每个事件处理器向其传递内部的handle, 该Handle向操作系统标识了事件处理器
+
+
+    3. 当所有的事件处理器注册完毕后, 应用会调用handle_events方法, 来启动Initiation Dispatcher的事件循环,
+        这时候, Initiaion Dispathcer会将每个注册事件管理器的handle合并, 并使用同步事件分离器等待这些事件发生.
+        比如: TCP协议层会使用select同步事件分离器操作, 来等待客户端发送的数据到达连接的socket handle上.
+
+    4. 当与某个事件源对应的Handle变为ready状态时, 如TCP socket变为等待读状态时, 同步事件分离器, 会通知Initiation Dispatcher
+
+    5. Initiation Dispatcher会触发事件处理器的回调方法, 从而相应这个处于ready状态的Handle.
+        当事件发生时, Initiation Dispatcher会将被事件激活的handle作为key来寻找并分发恰当行为的事件处理器回调方法
+
+    6. Initiation Dispatcher会回调时间处理的handle_events回调方法来执行来执行特定于应用的功能,
+        从而响应这个事件.  所发生的事件类型可以作为 该方法参数 并被该方法内部使用来执行额外的特定服务的分离与分发.
+
+
+
+
+
+
+
+
+
 
 ?12. 反射的原理,反射创建类实例的三种方式是什么。
 
@@ -439,7 +533,7 @@
     G1
         基于复制算法
         不产生空间碎片
-        
+
     CMS收集器（Mark Sweep :标记-清除 算法）：一种以获取最短回收停顿时间为目标的收集器。目前很大一部分的Java应用集中在互联网站或者B/S系统的服务端上.
     
     https://wangkang007.gitbooks.io/jvm/content/chapter1.html
@@ -1503,7 +1597,7 @@ https://www.cnblogs.com/linguanh/p/8532641.html
 4. 乐观锁和悲观锁是什么，INNODB 的行级锁有哪 2 种，解释其含义。
     乐观锁是设定每次修改都不会冲突, 只在提交的时候去检查
     悲观锁设定每次修改都会冲突, 持有排它锁
-    
+
     行级锁分为 共享锁和排它锁两种, 
         共享锁又称读锁 不同事物对数据可以共享一把锁, 只能读, 不能写 
         排它锁又称写锁 获取锁后才能读和写, 获取不到时, 不能读, 不能写
@@ -1777,7 +1871,7 @@ https://www.cnblogs.com/linguanh/p/8532641.html
     redis没有使用一致性Hash, 而是引入了哈希槽slot的概念,redis集群总计有16384个槽, 每个key通过CRC16校验后对16384取模, 决定放在哪个槽
     
 10. redis 的持久化的机制，aof 和 rdb 的区别。
-    上面 *2
+    上面 #2
 
 11. redis 的集群怎么同步的数据的。
     全同步和部分同步

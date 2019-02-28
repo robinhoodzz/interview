@@ -9,14 +9,15 @@ public class HeapSort {
 
 
     public static void main(String[] args) {
-        int[] arr = new int[]{9, 6, 8, 7, 0, 1, 10, 4, 2};
+//        int[] arr = new int[]{9, 6, 8, 7, 0, 1, 10, 4, 2};
+        int[] arr = new int[]{8,7,5,3};
 
         // 开始位置是最后一个非叶子节点, 即最后一个节点的父节点
-        int start = (arr.length - 1) / 2;
-        // 结束位置 数组长度 - 1
-        for (int i = start; i >= 0; i--) {
-            maxHeap(arr, arr.length, i);
-        }
+//        int start = (arr.length - 1) / 2;
+//        // 结束位置 数组长度 - 1
+//        for (int i = start; i >= 0; i--) {
+//            maxHeap(arr, arr.length, i);
+//        }
         System.out.println(Arrays.toString(arr));
 
 

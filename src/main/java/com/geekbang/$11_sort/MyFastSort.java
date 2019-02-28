@@ -20,7 +20,8 @@ public class MyFastSort {
         System.out.println(Arrays.toString(a));
 
 
-        int[] b = new int[]{1, 8, 3, 9, 4, 5, 7};
+//        int[] b = new int[]{1, 8, 3, 9, 4, 5, 7};
+        int[] b = new int[]{8, 7, 5, 3};
         quickSort(b, 0, b.length - 1); /** GeekforGeek.com 推荐 */
         System.out.println(Arrays.toString(b));
     }
