@@ -10,7 +10,7 @@ public class Solution {
 
     public static void main(String[] args) {
         int[] a = new int[]{2, 7, 11, 15};
-        System.out.println(Arrays.toString(twoSum(a, 9)));
+        System.out.println(Arrays.toString(twoSum(a, 13)));
     }
 
     public static int[] twoSum(int[] nums, int target) {
@@ -19,7 +19,7 @@ public class Solution {
         for (int i = 0; i < nums.length; i++) {
             int next = target - nums[i];
             if (map.containsKey(next)) {
-                return new int[]{map.get(next), 1};
+                return new int[]{map.get(next), i};
             }
             map.put(nums[i], i);
         }
