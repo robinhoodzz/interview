@@ -1,4 +1,4 @@
-package algo;
+package algo.$1_double_pointer;
 
 import com.alibaba.fastjson.JSON;
 import org.junit.Test;

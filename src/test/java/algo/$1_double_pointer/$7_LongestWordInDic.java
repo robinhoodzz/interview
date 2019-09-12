@@ -1,4 +1,4 @@
-package algo;
+package algo.$1_double_pointer;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -1,4 +1,4 @@
-package algo;
+package algo.$1_double_pointer;
 
 import org.junit.Before;
 import org.junit.Test;
