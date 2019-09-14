@@ -1,4 +1,4 @@
-package algo_2;
+package algo_2.$2_stack_queue;
 
 import org.junit.Assert;
 import org.junit.Test;

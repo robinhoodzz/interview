@@ -4,8 +4,8 @@ package algo_2;
  * Created by Administrator on 2019/9/13.
  */
 public class Node {
-    int v;
-    Node next;
+    private int v;
+    public Node next;
 
     public Node() {
     }

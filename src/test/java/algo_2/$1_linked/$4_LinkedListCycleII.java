@@ -1,5 +1,7 @@
-package algo_2;
+package algo_2.$1_linked;
 
+import algo_2.Node;
+import algo_2.TestParent;
 import org.junit.Assert;
 import org.junit.Test;
 
