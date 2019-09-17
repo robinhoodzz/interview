@@ -83,28 +83,28 @@ public class $18_MaximumDepthofBinaryTree {
     private int maximumDepthofBinaryTreeDFS(TreeNode node) {
         if (node == null) return 0;
 
-        Stack<TreeNode> stack = new Stack<>();
-        Stack<Integer> cnt = new Stack<>();
+        Stack<TreeNode> nodeStack = new Stack<>();
+        Stack<Integer> cntStack = new Stack<>();
 
-        stack.push(node);
-        cnt.push(1);
+        nodeStack.push(node);
+        cntStack.push(1);
         int max = 0;
 
-        while (!stack.isEmpty()) {
-            int size = stack.size();
+        while (!nodeStack.isEmpty()) {
+            int size = nodeStack.size();
 
             for (int i = 0; i < size; i++) {
-                TreeNode tmp = stack.pop();
-                Integer tmpCnt = cnt.pop();
+                TreeNode tmpNode = nodeStack.pop();
+                Integer tmpCnt = cntStack.pop();
                 max = Math.max(tmpCnt, max);
 
-                if (tmp.left != null) {
-                    stack.push(tmp.left);
-                    cnt.push(tmpCnt + 1);
+                if (tmpNode.left != null) {
+                    nodeStack.push(tmpNode.left);
+                    cntStack.push(tmpCnt + 1);
                 }
-                if (tmp.right != null) {
-                    stack.push(tmp.right);
-                    cnt.push(tmpCnt + 1);
+                if (tmpNode.right != null) {
+                    nodeStack.push(tmpNode.right);
+                    cntStack.push(tmpCnt + 1);
                 }
 
             }
