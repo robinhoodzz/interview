@@ -75,7 +75,7 @@ public class $18_MaximumDepthofBinaryTree {
                 if (tmp.left != null) deque.add(tmp.left);
                 if (tmp.right != null) deque.add(tmp.right);
             }
-            cnt += 1;
+            cnt ++;
         }
         return cnt;
     }
