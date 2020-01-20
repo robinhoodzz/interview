@@ -11,6 +11,7 @@
 
     <modules>
         <module>myMvc</module>
+        <module>NettyStudy</module>
     </modules>
 
     <dependencies>
