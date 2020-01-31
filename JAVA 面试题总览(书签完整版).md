@@ -70,7 +70,7 @@ NIO
 
 6. 用过哪些 Map 类,都有什么区别,HashMap 是线程安全的吗,并发下使用的 Map 是什么, 他们内部原理分别是什么,比如存储方式,hashcode,扩容,默认容量等。
     Hashtable           Key不能为null  value不能为null   线程安全
-    ConcurrentHashMap   Key不能为null  value不能为null   锁分段技术(JDK8: CAS)
+    ConcurrentHashMap   Key不能为null  value不能为null   锁分段技术(JDK8: CAS + synchronized, slot槽中无node,则用cas, 有则用synchronized锁头结点) [锁机制参考](https://www.jianshu.com/p/5dbaa6707017)
     TreeMap             Key不能为null  value不能为null   线程不安全
     HashMap             Key可以null    value可以是null   线程不安全
 
@@ -389,6 +389,13 @@ NIO
 
 
 ### JVM 知识
+
+> [-XX:SurvivorRatio](https://blog.csdn.net/rickiyeat/article/details/78906235)
+>
+> [JVM调优面试题](https://blog.csdn.net/Butterfly_resting/article/details/89705057)
+>
+> [JVM调优流程](https://blog.csdn.net/zhan_lang/article/details/88567569)
+
 1. 什么情况下会发生栈内存溢出
     如果线程请求的栈深度大于虚拟机所允许的深度，将抛出StackOverflowError异常。 
     如果虚拟机在动态扩展栈时无法申请到足够的内存空间，则抛出OutOfMemoryError异常。
@@ -669,17 +676,17 @@ NIO
         
         
 ?3. 讲讲 Spring 加载流程。
-    核心组件
-        Bean
-        Context
-        Core
-    Bean    Bean的定义,Bean的创建, Bean的解析
-    Context 标识一个应用的环境
-            利用BeanFactory创建Bean对象
-            保存对象关系映射
-            捕获各种事件
-    Core    对资源提供者进行同一封装
-    
+​    核心组件
+​        Bean
+​        Context
+​        Core
+​    Bean    Bean的定义,Bean的创建, Bean的解析
+​    Context 标识一个应用的环境
+​            利用BeanFactory创建Bean对象
+​            保存对象关系映射
+​            捕获各种事件
+​    Core    对资源提供者进行同一封装
+
     IOC容器如何工作
         构建BeanFactory, 以便生产Bean
         注册事件

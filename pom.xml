@@ -12,6 +12,7 @@
     <modules>
         <module>myMvc</module>
         <module>NettyStudy</module>
+        <module>DesignPatterns</module>
     </modules>
 
     <dependencies>
